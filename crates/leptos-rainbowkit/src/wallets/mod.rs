@@ -1,6 +1,8 @@
-// Wallet module - placeholder for Phase 3
+pub mod wallet;
+pub mod connector;
+pub mod eip6963;
+pub mod connectors;
 
-pub struct WalletMetadata {
-    pub id: String,
-    pub name: String,
-}
+pub use wallet::{WalletMetadata, DownloadUrls, WalletConnector, ConnectionMethod};
+pub use connector::get_injected_provider;
+pub use eip6963::{setup_eip6963_discovery, EIP6963Provider, EIP6963ProviderInfo};
