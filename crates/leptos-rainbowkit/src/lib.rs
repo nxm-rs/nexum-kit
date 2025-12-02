@@ -20,4 +20,4 @@ pub use components::{
     RainbowKitProvider,
 };
 
-pub use theme::{Theme, LightTheme, DarkTheme};
+pub use theme::{Theme, LightTheme, DarkTheme, MidnightTheme};
