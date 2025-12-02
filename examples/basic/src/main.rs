@@ -2,7 +2,7 @@ use leptos::prelude::*;
 use leptos::callback::{Callback, UnsyncCallback};
 use leptos_rainbowkit::prelude::*;
 use leptos_rainbowkit::components::modals::ConnectModal;
-use leptos_rainbowkit::theme::{LightTheme, DarkTheme, MidnightTheme, ThemeOptions};
+use leptos_rainbowkit::theme::{LightTheme, DarkTheme, MidnightTheme, ThemeOptions, BorderRadius, FontStack, OverlayBlur};
 
 fn main() {
     console_log::init_with_level(log::Level::Debug).unwrap();
@@ -66,10 +66,19 @@ fn App() -> impl IntoView {
         set_theme_mode.set(theme_mode.get().next());
     });
 
+    // Create theme options with blur enabled
+    let theme_options = ThemeOptions {
+        accent_color: None,
+        accent_color_foreground: None,
+        border_radius: BorderRadius::Large,
+        font_stack: FontStack::Rounded,
+        overlay_blur: OverlayBlur::Small, // Enable blur on modal backdrop
+    };
+
     view! {
         {move || match theme_mode.get() {
             ThemeMode::Light => view! {
-                <RainbowKitProvider theme=LightTheme theme_options=ThemeOptions::default()>
+                <RainbowKitProvider theme=LightTheme theme_options=theme_options.clone()>
                     <AppContent
                         theme_mode=theme_mode
                         bg_color=bg_color
@@ -80,7 +89,7 @@ fn App() -> impl IntoView {
                 </RainbowKitProvider>
             }.into_any(),
             ThemeMode::Dark => view! {
-                <RainbowKitProvider theme=DarkTheme theme_options=ThemeOptions::default()>
+                <RainbowKitProvider theme=DarkTheme theme_options=theme_options.clone()>
                     <AppContent
                         theme_mode=theme_mode
                         bg_color=bg_color
@@ -91,7 +100,7 @@ fn App() -> impl IntoView {
                 </RainbowKitProvider>
             }.into_any(),
             ThemeMode::Midnight => view! {
-                <RainbowKitProvider theme=MidnightTheme theme_options=ThemeOptions::default()>
+                <RainbowKitProvider theme=MidnightTheme theme_options=theme_options.clone()>
                     <AppContent
                         theme_mode=theme_mode
                         bg_color=bg_color
