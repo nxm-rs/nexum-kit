@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use leptos::callback::{Callback, UnsyncCallback};
 use leptos_rainbowkit::prelude::*;
-use leptos_rainbowkit::components::modals::ConnectModal;
+use leptos_rainbowkit::components::modals::{ConnectModal, AccountModal};
 use leptos_rainbowkit::theme::{LightTheme, DarkTheme, MidnightTheme, ThemeOptions, BorderRadius, FontStack, OverlayBlur};
 
 fn main() {
@@ -182,6 +182,9 @@ fn AppContent(
                 <div class="pt-4">
                     <ConnectButton />
                 </div>
+
+                <ConnectModal />
+                <AccountModal />
 
                 <p
                     class="text-sm pt-2"
