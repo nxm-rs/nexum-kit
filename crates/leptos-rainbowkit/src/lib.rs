@@ -18,6 +18,8 @@ pub mod prelude;
 pub use components::{
     ConnectButton,
     RainbowKitProvider,
+    ConnectModal,
+    AccountModal,
 };
 
 pub use theme::{Theme, LightTheme, DarkTheme, MidnightTheme};

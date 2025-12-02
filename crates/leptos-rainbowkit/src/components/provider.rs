@@ -2,6 +2,7 @@ use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::HtmlStyleElement;
 use crate::state::modal::provide_modal_state;
+use crate::state::connection::provide_connection_state;
 use crate::theme::{Theme, ThemeOptions, LightTheme};
 
 #[component]
@@ -12,6 +13,9 @@ pub fn RainbowKitProvider<T: Theme + Clone + 'static>(
 ) -> impl IntoView where T: Default {
     // Provide modal state
     provide_modal_state();
+
+    // Provide connection state
+    provide_connection_state();
 
     // Build theme with options
     let theme_instance = theme.unwrap_or_default();
@@ -58,6 +62,7 @@ pub fn RainbowKitProviderSimple(
     children: Children,
 ) -> impl IntoView {
     provide_modal_state();
+    provide_connection_state();
 
     let options = theme_options.unwrap_or_default();
     let theme_vars = LightTheme.build(&options);
