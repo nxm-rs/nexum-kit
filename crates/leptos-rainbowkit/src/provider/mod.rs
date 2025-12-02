@@ -1,1 +1,3 @@
-// Provider module - placeholder for Phase 3
+pub mod client;
+
+pub use client::create_http_provider;
