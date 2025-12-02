@@ -6,12 +6,14 @@ pub fn ConnectButton() -> impl IntoView {
     let modal_state = use_modal_state();
 
     let handle_click = move |_| {
+        log::debug!("Connect button clicked!");
         modal_state.open_connect();
+        log::debug!("Modal state updated to Connect");
     };
 
     view! {
         <button
-            class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
+            class="rk-button rk-button-primary"
             on:click=handle_click
             data-rk=""
         >
