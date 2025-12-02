@@ -1,0 +1,45 @@
+[package]
+name = "leptos-rainbowkit"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Leptos component library for connecting Ethereum wallets"
+keywords = ["leptos", "ethereum", "web3", "wallet", "blockchain"]
+categories = ["wasm", "web-programming", "gui"]
+
+[dependencies]
+leptos.workspace = true
+leptos_meta.workspace = true
+leptos_router.workspace = true
+alloy = { workspace = true, features = ["provider-http", "signer-local"] }
+alloy-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+wasm-bindgen.workspace = true
+web-sys = { workspace = true, features = [
+  "Window",
+  "Document",
+  "Storage",
+  "EventTarget",
+  "MessageEvent",
+  "CustomEvent",
+  "Crypto",
+  "HtmlElement",
+  "Element",
+  "DomTokenList",
+] }
+js-sys.workspace = true
+console_log.workspace = true
+log.workspace = true
+console_error_panic_hook.workspace = true
+qrcode.workspace = true
+getrandom.workspace = true
+
+[features]
+default = []
+ssr = []
+
+[lib]
+crate-type = ["cdylib", "rlib"]

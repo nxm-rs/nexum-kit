@@ -1,0 +1,38 @@
+[workspace]
+members = [
+  "crates/leptos-rainbowkit",
+  "crates/leptos-rainbow-button",
+  "crates/create-leptos-rainbowkit",
+  "examples/basic",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["RainbowKit Contributors"]
+license = "MIT"
+repository = "https://github.com/rainbow-me/rainbowkit"
+
+[workspace.dependencies]
+leptos = { version = "0.8", features = ["csr"] }
+leptos_meta = "0.8"
+leptos_router = "0.8"
+alloy = { version = "1.0", features = ["provider-http", "signer-local"], default-features = false }
+alloy-core = { version = "0.8", default-features = false }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+wasm-bindgen = "0.2"
+web-sys = "0.3"
+js-sys = "0.3"
+console_log = "1"
+log = "0.4"
+console_error_panic_hook = "0.1"
+qrcode = "0.14"
+getrandom = { version = "0.2", features = ["js"] }
+
+[profile.release]
+opt-level = 'z'
+lto = true
+codegen-units = 1
+panic = "abort"

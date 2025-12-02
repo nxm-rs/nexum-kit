@@ -1,0 +1,19 @@
+[package]
+name = "leptos-rainbowkit-example"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+leptos.workspace = true
+leptos_meta.workspace = true
+leptos_router.workspace = true
+leptos-rainbowkit = { path = "../../crates/leptos-rainbowkit" }
+console_log.workspace = true
+log.workspace = true
+console_error_panic_hook.workspace = true
+
+[profile.release]
+opt-level = 'z'
+lto = true
+codegen-units = 1
+panic = "abort"

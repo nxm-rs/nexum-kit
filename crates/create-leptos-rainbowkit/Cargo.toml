@@ -1,0 +1,14 @@
+[package]
+name = "create-leptos-rainbowkit"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "CLI tool for scaffolding new Leptos RainbowKit projects"
+
+[dependencies]
+
+[[bin]]
+name = "create-leptos-rainbowkit"
+path = "src/main.rs"

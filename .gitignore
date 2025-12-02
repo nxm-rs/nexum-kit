@@ -114,3 +114,22 @@ dist
 # Others
 .DS_Store
 node-compile-cache/
+
+# Rust
+target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# Trunk
+dist/
+.trunk/
+
+# IDE
+.zed/
+.vscode/
+.idea/
+
+# Nix
+result
+result-*

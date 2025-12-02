@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  /* Color tokens - CSS variables that can be customized */
+  --color-rk-accent: oklch(0.7 0.15 250);
+  --color-rk-accent-hover: oklch(0.65 0.15 250);
+  --color-rk-bg: oklch(1 0 0);
+  --color-rk-bg-secondary: oklch(0.98 0 0);
+  --color-rk-text: oklch(0.2 0 0);
+  --color-rk-text-secondary: oklch(0.5 0 0);
+  --color-rk-border: oklch(0.9 0 0);
+
+  /* Structural tokens */
+  --radius-rk: 12px;
+  --blur-rk: 0px;
+}
+
+/* Dark mode overrides */
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-rk-bg: oklch(0.2 0 0);
+    --color-rk-bg-secondary: oklch(0.25 0 0);
+    --color-rk-text: oklch(0.98 0 0);
+    --color-rk-text-secondary: oklch(0.7 0 0);
+    --color-rk-border: oklch(0.35 0 0);
+  }
+}
+
+/* Data attribute for RainbowKit components */
+[data-rk] {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Modal overlay styles */
+.rk-modal-overlay {
+  backdrop-filter: blur(var(--blur-rk));
+}
