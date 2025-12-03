@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use leptos::callback::UnsyncCallback;
+use leptos::callback::{UnsyncCallback, Callback};
 use crate::components::primitives::{Dialog, Text, BoxFontWeight};
 use crate::state::modal::{use_modal_state, ModalType};
 use crate::state::connection::use_connection_state;
@@ -59,15 +59,22 @@ pub fn ConnectModal() -> impl IntoView {
                 <For
                     each=move || discovered_wallets.get()
                     key=|wallet| wallet.uuid.clone()
-                    children=move |wallet_info: EIP6963ProviderInfo| {
-                        let wallet_name = wallet_info.name.clone();
-                        let wallet_icon = wallet_info.icon.clone();
-                        let _wallet_rdns = wallet_info.rdns.clone(); // Will be used to select connector
+                    children={
+                        let connection_state = connection_state.clone();
+                        let modal_state = modal_state.clone();
+                        move |wallet_info: EIP6963ProviderInfo| {
+                            let wallet_name = wallet_info.name.clone();
+                            let wallet_icon = wallet_info.icon.clone();
+                            let _wallet_rdns = wallet_info.rdns.clone(); // Will be used to select connector
 
-                        let handle_click = {
-                            let wallet_name = wallet_name.clone();
-                            move |_| {
+                            let handle_click = {
                                 let wallet_name = wallet_name.clone();
+                                let connection_state = connection_state.clone();
+                                let modal_state = modal_state.clone();
+                            Callback::new(move |_| {
+                                let wallet_name = wallet_name.clone();
+                                let connection_state = connection_state.clone();
+                                let modal_state = modal_state.clone();
                                 // Use the RDNS to identify which connector to use
                                 // For now, we only support MetaMask
                                 let connector = MetaMaskConnector::new();
@@ -83,10 +90,13 @@ pub fn ConnectModal() -> impl IntoView {
                                         }
                                     }
                                 });
-                            }
+                            })
                         };
 
-                        view! {
+                        let connection_state_for_style = connection_state.clone();
+                            let connection_state_for_disabled = connection_state.clone();
+
+                            view! {
                             <button
                                 class="wallet-option"
                                 style=move || {
@@ -106,14 +116,14 @@ pub fn ConnectModal() -> impl IntoView {
                                         color: var(--rk-colors-modalText);
                                     ";
 
-                                    if connection_state.is_connecting() {
+                                    if connection_state_for_style.is_connecting() {
                                         format!("{} opacity: 0.6; cursor: wait;", base_style)
                                     } else {
                                         format!("{} cursor: pointer;", base_style)
                                     }
                                 }
-                                disabled=move || connection_state.is_connecting()
-                                on:click=handle_click
+                                disabled=move || connection_state_for_disabled.is_connecting()
+                                on:click=move |ev| handle_click.run(ev)
                             >
                                 // Wallet icon from EIP-6963 (actual icon from the wallet!)
                                 <img
@@ -136,6 +146,7 @@ pub fn ConnectModal() -> impl IntoView {
                                     "Installed"
                                 </span>
                             </button>
+                        }
                         }
                     }
                 />

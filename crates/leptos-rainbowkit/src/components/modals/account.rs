@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use leptos::callback::UnsyncCallback;
+use leptos::callback::{UnsyncCallback, Callback};
 use crate::components::primitives::{Dialog, Text, BoxFontWeight};
 use crate::state::modal::{use_modal_state, ModalType};
 use crate::state::connection::use_connection_state;
@@ -16,12 +16,18 @@ pub fn AccountModal() -> impl IntoView {
     let is_open = modal_state.is_open(ModalType::Account);
     let on_close = UnsyncCallback::new(move |_| modal_state.close());
 
-    let handle_disconnect = move |_| {
-        spawn_local(async move {
-            log::info!("Disconnecting wallet...");
-            let _ = connection_state.disconnect().await;
-            modal_state.close();
-        });
+    let handle_disconnect = {
+        let connection_state = connection_state.clone();
+        let modal_state = modal_state.clone();
+        Callback::new(move |_| {
+            let connection_state = connection_state.clone();
+            let modal_state = modal_state.clone();
+            spawn_local(async move {
+                log::info!("Disconnecting wallet...");
+                let _ = connection_state.disconnect().await;
+                modal_state.close();
+            });
+        })
     };
 
     view! {
@@ -78,7 +84,7 @@ pub fn AccountModal() -> impl IntoView {
                         cursor: pointer;
                         transition: all 0.125s ease;
                     "
-                    on:click=handle_disconnect
+                    on:click=move |ev| handle_disconnect.run(ev)
                 >
                     "Disconnect"
                 </button>

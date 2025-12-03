@@ -4,5 +4,5 @@ pub mod primitives;
 pub mod modals;
 
 pub use connect_button::ConnectButton;
-pub use provider::RainbowKitProvider;
+pub use provider::{RainbowKitProvider, RainbowKitProviderSimple};
 pub use modals::{ConnectModal, AccountModal};

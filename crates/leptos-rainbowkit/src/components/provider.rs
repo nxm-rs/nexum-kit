@@ -1,21 +1,40 @@
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::HtmlStyleElement;
+use std::collections::HashMap;
 use crate::state::modal::provide_modal_state;
 use crate::state::connection::provide_connection_state;
+use crate::state::transaction::provide_transaction_store;
 use crate::theme::{Theme, ThemeOptions, LightTheme};
+use crate::i18n::{Locale, provide_i18n};
 
 #[component]
 pub fn RainbowKitProvider<T: Theme + Clone + 'static>(
+    /// RPC URL mappings for each chain (chain_id -> rpc_url)
+    ///
+    /// Example:
+    /// ```rust
+    /// let mut transports = HashMap::new();
+    /// transports.insert(1, "https://eth-mainnet.g.alchemy.com/v2/YOUR-API-KEY".to_string());
+    /// transports.insert(137, "https://polygon-mainnet.g.alchemy.com/v2/YOUR-API-KEY".to_string());
+    /// ```
+    transports: HashMap<u64, String>,
     #[prop(optional)] theme: Option<T>,
     #[prop(optional)] theme_options: Option<ThemeOptions>,
+    #[prop(optional)] locale: Option<Locale>,
     children: Children,
 ) -> impl IntoView where T: Default {
     // Provide modal state
     provide_modal_state();
 
-    // Provide connection state
-    provide_connection_state();
+    // Provide connection state with transports
+    provide_connection_state(transports.clone());
+
+    // Provide transaction store
+    provide_transaction_store();
+
+    // Provide i18n
+    provide_i18n(locale.unwrap_or_default());
 
     // Build theme with options
     let theme_instance = theme.unwrap_or_default();
@@ -58,11 +77,16 @@ pub fn RainbowKitProvider<T: Theme + Clone + 'static>(
 // Simplified provider for when you want to use LightTheme (most common case)
 #[component]
 pub fn RainbowKitProviderSimple(
+    /// RPC URL mappings for each chain (chain_id -> rpc_url)
+    transports: HashMap<u64, String>,
     #[prop(optional)] theme_options: Option<ThemeOptions>,
+    #[prop(optional)] locale: Option<Locale>,
     children: Children,
 ) -> impl IntoView {
     provide_modal_state();
-    provide_connection_state();
+    provide_connection_state(transports);
+    provide_transaction_store();
+    provide_i18n(locale.unwrap_or_default());
 
     let options = theme_options.unwrap_or_default();
     let theme_vars = LightTheme.build(&options);
