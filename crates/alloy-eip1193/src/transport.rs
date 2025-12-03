@@ -196,13 +196,16 @@ impl Service<RequestPacket> for Eip1193Transport {
                 .map_err(|e| TransportErrorKind::custom_str(&format!("{:?}", e)))?;
 
             // Make the request using raw JsValue since RequestPacket is already JSON-RPC formatted
-            let result = transport.request_raw(
-                request_value.get("method")
-                    .and_then(|m| m.as_str())
-                    .ok_or_else(|| TransportErrorKind::custom_str("Missing method in request"))?,
-                request_value.get("params")
-                    .ok_or_else(|| TransportErrorKind::custom_str("Missing params in request"))?
-            ).await
+            let method = request_value.get("method")
+                .and_then(|m| m.as_str())
+                .ok_or_else(|| TransportErrorKind::custom_str("Missing method in request"))?;
+
+            // Params might be missing for methods like eth_requestAccounts
+            let params = request_value.get("params")
+                .cloned()
+                .unwrap_or(serde_json::Value::Array(vec![]));
+
+            let result = transport.request_raw(method, params).await
                 .map_err(|e| TransportErrorKind::custom_str(&format!("{:?}", e)))?;
 
             // Serialize back to JSON
@@ -213,8 +216,21 @@ impl Service<RequestPacket> for Eip1193Transport {
 
             log::debug!("EIP-1193 response: {}", result_json);
 
+            // Get the request ID from the original request
+            let id = request_value.get("id")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0);
+
+            // Build a proper JSON-RPC response packet
+            let response = serde_json::json!({
+                "jsonrpc": "2.0",
+                "id": id,
+                "result": serde_json::from_str::<serde_json::Value>(&result_json)
+                    .map_err(|e| TransportErrorKind::custom_str(&format!("{:?}", e)))?
+            });
+
             // Deserialize to ResponsePacket
-            serde_json::from_str(&result_json)
+            serde_json::from_value(response)
                 .map_err(|e| TransportErrorKind::custom_str(&format!("{:?}", e)))
         };
 
