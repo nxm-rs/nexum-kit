@@ -3,8 +3,9 @@
 //! This module provides high-level methods for interacting with browser wallets,
 //! including switching chains and adding new chains to the wallet.
 
+use alloy::primitives::Address;
 use wasm_bindgen::prelude::*;
-use crate::request::Eip1193Requester;
+use crate::transport::Eip1193Transport;
 use crate::chain::ChainConfig;
 
 /// Wallet operations helper
@@ -13,15 +14,41 @@ use crate::chain::ChainConfig;
 /// wallet-specific operations like switching chains or adding new chains.
 #[derive(Clone, Debug)]
 pub struct WalletOperations {
-    requester: Eip1193Requester,
+    transport: Eip1193Transport,
 }
 
 impl WalletOperations {
     /// Create a new WalletOperations instance
     pub fn new(ethereum: JsValue) -> Self {
         Self {
-            requester: Eip1193Requester::new(ethereum),
+            transport: Eip1193Transport::new(ethereum),
         }
+    }
+
+    /// Request accounts from the wallet (prompts user if needed)
+    ///
+    /// This is essentially an alias for `wallet_requestPermissions` with eth_accounts.
+    /// It prompts the user to connect their wallet and returns the list of accounts.
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let wallet = WalletOperations::new(ethereum);
+    /// let accounts = wallet.request_accounts().await?;
+    /// ```
+    pub async fn request_accounts(&self) -> Result<Vec<Address>, JsValue> {
+        let empty_params: Vec<String> = Vec::new();
+        let accounts: Vec<String> = self.transport
+            .request("eth_requestAccounts", empty_params)
+            .await?;
+
+        accounts
+            .into_iter()
+            .map(|addr_str| {
+                addr_str
+                    .parse::<Address>()
+                    .map_err(|e| JsValue::from_str(&format!("Invalid address format: {:?}", e)))
+            })
+            .collect()
     }
 
     /// Switch to a different chain
@@ -40,7 +67,7 @@ impl WalletOperations {
             "chainId": format!("0x{:x}", chain_id)
         })];
 
-        self.requester
+        self.transport
             .request::<_, serde_json::Value>("wallet_switchEthereumChain", params)
             .await?;
 
@@ -100,7 +127,7 @@ impl WalletOperations {
 
         let params = vec![params_obj];
 
-        self.requester
+        self.transport
             .request::<_, serde_json::Value>("wallet_addEthereumChain", params)
             .await?;
 

@@ -2,17 +2,24 @@
 //!
 //! This module provides a Tower Service implementation for JSON-RPC requests via EIP-1193,
 //! making browser wallet providers compatible with Alloy's provider architecture.
+//!
+//! ## Design Philosophy
+//!
+//! We follow Alloy's idiomatic patterns for RPC calls:
+//! - Use tuples for RPC parameters (e.g., `(address, data)`) instead of custom structs
+//! - No type aliases for standard Ethereum RPC methods (those are in Alloy's Provider trait)
+//! - Only define types for wallet-specific extensions (handled in wallet.rs)
 
 use alloy::transports::{TransportError, TransportErrorKind};
 use alloy_json_rpc::{RequestPacket, ResponsePacket};
+use serde::{Deserialize, Serialize};
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 use tower::Service;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::JsFuture;
 use web_sys::js_sys;
-
-use crate::request::Eip1193Requester;
 
 /// EIP-1193 Transport implementation for Alloy
 ///
@@ -23,7 +30,7 @@ use crate::request::Eip1193Requester;
 /// there's only one thread. This is safe in the browser environment.
 #[derive(Clone)]
 pub struct Eip1193Transport {
-    requester: Eip1193Requester,
+    ethereum: JsValue,
 }
 
 // WASM is single-threaded, so Send/Sync are safe
@@ -39,9 +46,7 @@ impl std::fmt::Debug for Eip1193Transport {
 impl Eip1193Transport {
     /// Create a new EIP-1193 transport from a wallet's ethereum provider object
     pub fn new(ethereum: JsValue) -> Self {
-        Self {
-            requester: Eip1193Requester::new(ethereum),
-        }
+        Self { ethereum }
     }
 
     /// Get the ethereum provider from window.ethereum
@@ -63,13 +68,65 @@ impl Eip1193Transport {
 
     /// Get a reference to the underlying ethereum provider object
     pub fn ethereum(&self) -> &JsValue {
-        self.requester.ethereum()
+        &self.ethereum
     }
 
-    /// Request accounts from the wallet (prompts user if needed)
-    pub async fn request_accounts(&self) -> Result<Vec<String>, JsValue> {
-        let empty_params: Vec<String> = Vec::new();
-        self.requester.request("eth_requestAccounts", empty_params).await
+    /// Make a typed RPC request to the wallet
+    ///
+    /// This is the core request method for EIP-1193 calls.
+    /// It handles serialization, the actual request, and deserialization.
+    pub(crate) async fn request<P, R>(&self, method: &str, params: P) -> Result<R, JsValue>
+    where
+        P: Serialize,
+        R: for<'de> Deserialize<'de>,
+    {
+        // Convert params to JsValue using serde_wasm_bindgen for efficiency
+        let params_js = serde_wasm_bindgen::to_value(&params)
+            .map_err(|e| JsValue::from_str(&format!("Failed to serialize params: {:?}", e)))?;
+
+        // Build request object
+        let request_obj = js_sys::Object::new();
+        js_sys::Reflect::set(&request_obj, &"method".into(), &method.into())?;
+        js_sys::Reflect::set(&request_obj, &"params".into(), &params_js)?;
+
+        // Get request function (cached by JS engine)
+        let request_fn = js_sys::Reflect::get(&self.ethereum, &"request".into())?;
+        let request_fn = request_fn.dyn_into::<js_sys::Function>()?;
+
+        // Make the request
+        let promise = request_fn.call1(&self.ethereum, &request_obj)?;
+        let promise = promise.dyn_into::<js_sys::Promise>()?;
+
+        // Await the response
+        let result = JsFuture::from(promise).await?;
+
+        // Deserialize response using serde_wasm_bindgen for efficiency
+        serde_wasm_bindgen::from_value(result)
+            .map_err(|e| JsValue::from_str(&format!("Failed to deserialize response: {:?}", e)))
+    }
+
+    /// Make a request returning a raw JsValue
+    ///
+    /// Use this when you need to handle the response manually or when
+    /// the response type is complex/dynamic.
+    pub(crate) async fn request_raw<P>(&self, method: &str, params: P) -> Result<JsValue, JsValue>
+    where
+        P: Serialize,
+    {
+        let params_js = serde_wasm_bindgen::to_value(&params)
+            .map_err(|e| JsValue::from_str(&format!("Failed to serialize params: {:?}", e)))?;
+
+        let request_obj = js_sys::Object::new();
+        js_sys::Reflect::set(&request_obj, &"method".into(), &method.into())?;
+        js_sys::Reflect::set(&request_obj, &"params".into(), &params_js)?;
+
+        let request_fn = js_sys::Reflect::get(&self.ethereum, &"request".into())?;
+        let request_fn = request_fn.dyn_into::<js_sys::Function>()?;
+
+        let promise = request_fn.call1(&self.ethereum, &request_obj)?;
+        let promise = promise.dyn_into::<js_sys::Promise>()?;
+
+        JsFuture::from(promise).await
     }
 }
 
@@ -84,7 +141,7 @@ impl Service<RequestPacket> for Eip1193Transport {
     }
 
     fn call(&mut self, req: RequestPacket) -> Self::Future {
-        let requester = self.requester.clone();
+        let transport = self.clone();
 
         Box::pin(async move {
             // Serialize the request to JSON for logging
@@ -98,7 +155,7 @@ impl Service<RequestPacket> for Eip1193Transport {
                 .map_err(|e| TransportErrorKind::custom_str(&format!("{:?}", e)))?;
 
             // Make the request using raw JsValue since RequestPacket is already JSON-RPC formatted
-            let result = requester.request_raw(
+            let result = transport.request_raw(
                 request_value.get("method")
                     .and_then(|m| m.as_str())
                     .ok_or_else(|| TransportErrorKind::custom_str("Missing method in request"))?,

@@ -8,7 +8,6 @@ use async_trait::async_trait;
 use wasm_bindgen::prelude::*;
 
 use crate::transport::Eip1193Transport;
-use crate::request::Eip1193Requester;
 
 /// EIP-1193 signer that uses browser wallet for signing operations only.
 ///
@@ -17,8 +16,8 @@ use crate::request::Eip1193Requester;
 /// HTTP transport provider for blockchain RPC operations.
 #[derive(Clone, Debug)]
 pub struct Eip1193Signer {
-    /// Generic requester for making EIP-1193 RPC calls
-    requester: Eip1193Requester,
+    /// Transport for making EIP-1193 RPC calls
+    transport: Eip1193Transport,
     /// Cached address of the currently connected account
     address: Address,
     /// Chain ID for EIP-155 transaction signing
@@ -37,7 +36,7 @@ impl Eip1193Signer {
     /// * `address` - The currently connected account address
     pub fn new(ethereum: JsValue, address: Address) -> Self {
         Self {
-            requester: Eip1193Requester::new(ethereum),
+            transport: Eip1193Transport::new(ethereum),
             address,
             chain_id: None,
         }
@@ -51,7 +50,7 @@ impl Eip1193Signer {
     /// * `chain_id` - The chain ID for EIP-155 signing
     pub fn new_with_chain_id(ethereum: JsValue, address: Address, chain_id: ChainId) -> Self {
         Self {
-            requester: Eip1193Requester::new(ethereum),
+            transport: Eip1193Transport::new(ethereum),
             address,
             chain_id: Some(chain_id),
         }
@@ -62,11 +61,11 @@ impl Eip1193Signer {
     /// This will request account access if not already granted and fetch the current chain ID.
     pub async fn from_window() -> Result<Self, JsValue> {
         let ethereum = Eip1193Transport::get_ethereum()?;
-        let requester = Eip1193Requester::new(ethereum.clone());
+        let transport = Eip1193Transport::new(ethereum.clone());
 
         // Request accounts to get the current address
         let empty_params: Vec<String> = Vec::new();
-        let accounts: Vec<String> = requester.request("eth_requestAccounts", empty_params).await?;
+        let accounts: Vec<String> = transport.request("eth_requestAccounts", empty_params).await?;
         let address = accounts
             .first()
             .ok_or_else(|| JsValue::from_str("No accounts available"))?
@@ -74,7 +73,7 @@ impl Eip1193Signer {
             .map_err(|e| JsValue::from_str(&format!("Failed to parse address: {}", e)))?;
 
         // Fetch the current chain ID from the wallet
-        let chain_id_hex: String = requester.request("eth_chainId", Vec::<String>::new()).await?;
+        let chain_id_hex: String = transport.request("eth_chainId", Vec::<String>::new()).await?;
         let chain_id = u64::from_str_radix(chain_id_hex.trim_start_matches("0x"), 16)
             .map_err(|e| JsValue::from_str(&format!("Failed to parse chain ID: {}", e)))?;
 
@@ -83,7 +82,7 @@ impl Eip1193Signer {
 
     /// Get the ethereum provider object
     pub fn ethereum(&self) -> &JsValue {
-        self.requester.ethereum()
+        self.transport.ethereum()
     }
 }
 
@@ -100,7 +99,7 @@ impl Signer<Signature> for Eip1193Signer {
             format!("0x{}", hex::encode(hash)),
         );
 
-        let sig_str: String = self.requester
+        let sig_str: String = self.transport
             .request("eth_sign", params)
             .await
             .map_err(|e| alloy::signers::Error::other(format!("Sign hash failed: {:?}", e)))?;
@@ -119,7 +118,7 @@ impl Signer<Signature> for Eip1193Signer {
             format!("{:?}", self.address),
         );
 
-        let sig_str: String = self.requester
+        let sig_str: String = self.transport
             .request("personal_sign", params)
             .await
             .map_err(|e| alloy::signers::Error::other(format!("Sign message failed: {:?}", e)))?;
@@ -158,7 +157,7 @@ impl Signer<Signature> for Eip1193Signer {
             payload_json,
         );
 
-        let sig_str: String = self.requester
+        let sig_str: String = self.transport
             .request("eth_signTypedData_v4", params)
             .await
             .map_err(|e| alloy::signers::Error::other(format!("Sign typed data failed: {:?}", e)))?;

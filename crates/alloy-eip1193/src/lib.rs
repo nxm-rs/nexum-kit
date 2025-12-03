@@ -35,13 +35,15 @@
 //! ### Combined (Transport + Signer)
 //!
 //! ```rust,ignore
-//! use alloy_eip1193::{Eip1193Transport, Eip1193Signer};
+//! use alloy_eip1193::{Eip1193Transport, Eip1193Signer, WalletOperations};
 //! use alloy::providers::ProviderBuilder;
 //!
 //! let ethereum = Eip1193Transport::get_ethereum()?;
 //! let transport = Eip1193Transport::new(ethereum.clone());
-//! let accounts = transport.request_accounts().await?;
-//! let address = accounts[0].parse()?;
+//!
+//! let wallet = WalletOperations::new(ethereum.clone());
+//! let accounts = wallet.request_accounts().await?;
+//! let address = accounts[0];
 //! let signer = Eip1193Signer::new(ethereum, address);
 //!
 //! let provider = ProviderBuilder::new()
@@ -52,13 +54,11 @@
 #![cfg_attr(not(target_family = "wasm"), allow(unused))]
 #![warn(missing_docs)]
 
-mod request;
 mod transport;
 mod signer;
 mod chain;
 mod wallet;
 
-pub use request::Eip1193Requester;
 pub use transport::Eip1193Transport;
 pub use signer::Eip1193Signer;
 pub use chain::ChainConfig;
@@ -69,7 +69,7 @@ pub use alloy_chains::{Chain, NamedChain};
 
 /// Re-export commonly used types from dependencies
 pub mod prelude {
-    pub use crate::{Eip1193Transport, Eip1193Signer, Eip1193Requester, ChainConfig, WalletOperations};
+    pub use crate::{Eip1193Transport, Eip1193Signer, ChainConfig, WalletOperations};
     pub use alloy::primitives::{Address, Signature, B256};
     pub use alloy::signers::Signer;
     pub use alloy_chains::{Chain, NamedChain};

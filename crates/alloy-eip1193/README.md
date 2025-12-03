@@ -6,7 +6,8 @@ EIP-1193 provider and signer implementation for [Alloy](https://github.com/alloy
 
 - **`Eip1193Transport`**: Tower Service implementation for JSON-RPC requests via browser wallets
 - **`Eip1193Signer`**: Signer implementation that delegates signing to browser wallets
-- **`Eip1193Requester`**: Generic typed request handler for EIP-1193 providers
+- **`WalletOperations`**: High-level methods for wallet management (switch chains, add chains, request accounts)
+- **`ChainConfig`**: Type-safe chain configuration with builder pattern
 - Type-safe API with compile-time guarantees
 - Zero-copy serialization where possible
 - Minimal allocations for optimal WASM performance
@@ -54,37 +55,22 @@ let receipt = provider.send_transaction(tx).await?;
 For the best of both worlds - use the wallet's RPC for all operations:
 
 ```rust
-use alloy_eip1193::{Eip1193Transport, Eip1193Signer};
+use alloy_eip1193::{Eip1193Transport, Eip1193Signer, WalletOperations};
 use alloy::providers::ProviderBuilder;
 
 let ethereum = Eip1193Transport::get_ethereum()?;
 let transport = Eip1193Transport::new(ethereum.clone());
 
 // Request accounts and create signer
-let accounts = transport.request_accounts().await?;
-let address = accounts[0].parse()?;
+let wallet = WalletOperations::new(ethereum.clone());
+let accounts = wallet.request_accounts().await?;
+let address = accounts[0];
 let signer = Eip1193Signer::new(ethereum, address);
 
 // Create provider with both transport and signer
 let provider = ProviderBuilder::new()
     .with_signer(signer)
     .on_transport(transport);
-```
-
-### Direct EIP-1193 Requests
-
-For advanced use cases, you can use the `Eip1193Requester` directly:
-
-```rust
-use alloy_eip1193::{Eip1193Requester, Eip1193Transport};
-
-let ethereum = Eip1193Transport::get_ethereum()?;
-let requester = Eip1193Requester::new(ethereum);
-
-// Make typed requests
-let accounts: Vec<String> = requester
-    .request("eth_requestAccounts", Vec::<()>::new())
-    .await?;
 ```
 
 ### Wallet-Specific Operations
@@ -133,11 +119,10 @@ wallet.add_chain(config).await?;
 
 This crate is designed to work seamlessly with Alloy's provider architecture:
 
-- **Transport Layer** (`transport.rs`): `Eip1193Transport` implements Tower's `Service` trait for JSON-RPC requests
+- **Transport Layer** (`transport.rs`): `Eip1193Transport` implements Tower's `Service` trait for JSON-RPC requests and provides internal request handling
 - **Signer Layer** (`signer.rs`): `Eip1193Signer` implements Alloy's `Signer`, `TxSigner`, and `NetworkWallet` traits
-- **Request Layer** (`request.rs`): `Eip1193Requester` provides a low-level, type-safe API for making EIP-1193 requests
-- **Wallet Operations** (`wallet.rs`): `WalletOperations` provides high-level methods for wallet management (switch chains, add chains)
-- **Chain Configuration** (`chain.rs`): `ChainConfig` for configuring chains with auto-derived metadata from `alloy-chains`
+- **Wallet Operations** (`wallet.rs`): `WalletOperations` provides high-level methods for wallet management (switch chains, add chains, request accounts)
+- **Chain Configuration** (`chain.rs`): `ChainConfig` with builder pattern for configuring chains with auto-derived metadata from `alloy-chains`
 
 All components are optimized for WebAssembly and work with any EIP-1193 compliant browser wallet (MetaMask, Coinbase Wallet, etc.).
 

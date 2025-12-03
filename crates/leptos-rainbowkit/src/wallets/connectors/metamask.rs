@@ -1,6 +1,6 @@
 use crate::wallets::wallet::{WalletConnector, WalletMetadata, DownloadUrls, ConnectionMethod};
 use crate::wallets::connector::{get_injected_provider, is_metamask, ProviderFlag};
-use crate::provider::Eip1193Requester;
+use crate::provider::WalletOperations;
 use alloy::primitives::Address;
 use wasm_bindgen::prelude::*;
 
@@ -54,25 +54,18 @@ impl WalletConnector for MetaMaskConnector {
             .get_ethereum()
             .ok_or_else(|| JsValue::from_str("MetaMask not installed"))?;
 
-        // Create EIP-1193 requester for type-safe requests
-        let requester = Eip1193Requester::new(ethereum);
+        // Use WalletOperations to request accounts
+        let wallet = WalletOperations::new(ethereum);
+        let accounts = wallet.request_accounts().await?;
 
-        // Request accounts using eth_requestAccounts
-        let empty_params: Vec<String> = Vec::new();
-        let accounts: Vec<String> = requester
-            .request("eth_requestAccounts", empty_params)
-            .await?;
-
-        let address_str = accounts
+        let address = accounts
             .first()
+            .copied()
             .ok_or_else(|| JsValue::from_str("No accounts returned from MetaMask"))?;
 
-        log::info!("MetaMask connected: {}", address_str);
+        log::info!("MetaMask connected: {:?}", address);
 
-        // Parse address string to Alloy Address
-        address_str
-            .parse::<Address>()
-            .map_err(|e| JsValue::from_str(&format!("Invalid address format: {:?}", e)))
+        Ok(address)
     }
 
     async fn disconnect(&self) -> Result<(), JsValue> {

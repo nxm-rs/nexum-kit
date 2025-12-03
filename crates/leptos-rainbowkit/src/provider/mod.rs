@@ -4,7 +4,6 @@ pub mod client;
 pub use alloy_eip1193::{
     Eip1193Transport,
     Eip1193Signer,
-    Eip1193Requester,
     ChainConfig,
     WalletOperations,
 };
