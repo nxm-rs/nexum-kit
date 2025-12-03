@@ -4,10 +4,12 @@ use alloy::primitives::{Address, Signature, B256, ChainId};
 use alloy::signers::Signer;
 use alloy::consensus::SignableTransaction;
 use alloy::dyn_abi::eip712::TypedData;
+use alloy::providers::RootProvider;
 use async_trait::async_trait;
 use wasm_bindgen::prelude::*;
 
 use crate::transport::Eip1193Transport;
+use crate::ext::Eip1193 as Eip1193Ext;
 
 /// EIP-1193 signer that uses browser wallet for signing operations only.
 ///
@@ -59,18 +61,23 @@ impl Eip1193Signer {
     /// Create a signer from the window.ethereum object.
     ///
     /// This will request account access if not already granted and fetch the current chain ID.
+    /// Uses the modern RpcClient + RootProvider + ext::Eip1193 pattern.
     pub async fn from_window() -> Result<Self, JsValue> {
         let ethereum = Eip1193Transport::get_ethereum()?;
         let transport = Eip1193Transport::new(ethereum.clone());
 
-        // Request accounts to get the current address
-        let empty_params: Vec<String> = Vec::new();
-        let accounts: Vec<String> = transport.request("eth_requestAccounts", empty_params).await?;
+        // Create RpcClient and RootProvider to use the Eip1193 trait extension
+        let client = transport.clone().into_client();
+        let provider = RootProvider::<Ethereum>::new(client);
+
+        // Use the Eip1193 trait extension to request accounts
+        let accounts = provider.request_accounts().await
+            .map_err(|e| JsValue::from_str(&format!("Failed to request accounts: {:?}", e)))?;
+
         let address = accounts
             .first()
-            .ok_or_else(|| JsValue::from_str("No accounts available"))?
-            .parse()
-            .map_err(|e| JsValue::from_str(&format!("Failed to parse address: {}", e)))?;
+            .copied()
+            .ok_or_else(|| JsValue::from_str("No accounts available"))?;
 
         // Fetch the current chain ID from the wallet
         let chain_id_hex: String = transport.request("eth_chainId", Vec::<String>::new()).await?;
@@ -84,9 +91,43 @@ impl Eip1193Signer {
     pub fn ethereum(&self) -> &JsValue {
         self.transport.ethereum()
     }
+
+
+    /// Refresh the chain ID from the wallet
+    ///
+    /// This queries the wallet's current chain via `eth_chainId` and updates
+    /// the internal chain_id field.
+    pub async fn refresh_chain_id(&mut self) -> Result<ChainId, JsValue> {
+        let chain_id_hex: String = self.transport
+            .request("eth_chainId", Vec::<String>::new())
+            .await?;
+
+        let chain_id = u64::from_str_radix(chain_id_hex.trim_start_matches("0x"), 16)
+            .map_err(|e| JsValue::from_str(&format!("Failed to parse chain ID: {}", e)))?;
+
+        self.chain_id = Some(chain_id);
+        Ok(chain_id)
+    }
+
+    /// Validate that the signer's chain ID matches the expected chain
+    ///
+    /// Returns an error if there's a mismatch between the wallet's current chain
+    /// and the expected chain. Call `refresh_chain_id()` first to ensure the
+    /// chain ID is up to date.
+    pub fn validate_chain_id(&self, expected: ChainId) -> Result<(), JsValue> {
+        if let Some(current) = self.chain_id {
+            if current != expected {
+                return Err(JsValue::from_str(&format!(
+                    "Chain ID mismatch: wallet is on chain {}, expected chain {}",
+                    current, expected
+                )));
+            }
+        }
+        Ok(())
+    }
+
 }
 
-// Only implement for WASM target
 #[cfg(target_family = "wasm")]
 #[async_trait(?Send)]
 impl Signer<Signature> for Eip1193Signer {
@@ -180,14 +221,21 @@ impl TxSigner<Signature> for Eip1193Signer {
         &self,
         tx: &mut dyn SignableTransaction<Signature>,
     ) -> Result<Signature, alloy::signers::Error> {
+        // CAVEAT: This uses eth_sign which shows warnings in MetaMask and most wallets
+        // For production use, prefer Eip1193Provider which uses eth_sendTransaction
+        // This fallback implementation is provided for API compatibility in edge cases
+
+        log::warn!(
+            "Using eth_sign for transaction signing. \
+             MetaMask and other wallets will show security warnings. \
+             For better UX, use Eip1193Provider with send_transaction override."
+        );
+
         // Encode the transaction for signing
         let mut tx_encoded = Vec::new();
         tx.encode_for_signing(&mut tx_encoded);
 
-        // Sign the transaction hash using eth_sign
-        // Note: MetaMask and most wallets will show a scary warning for eth_sign
-        // In production, you might want to use eth_sendTransaction and extract the signature
-        // or use a different signing method
+        // Sign the transaction hash using eth_sign (will show scary warning)
         let tx_hash = alloy::primitives::keccak256(&tx_encoded);
 
         self.sign_hash(&tx_hash).await
@@ -195,7 +243,9 @@ impl TxSigner<Signature> for Eip1193Signer {
 }
 
 /// Implement NetworkWallet for Ethereum network
-/// This allows the signer to be used with ProviderBuilder
+///
+/// This allows the signer to be used with ProviderBuilder.
+/// The implementation delegates to `TxSigner::sign_transaction` and wraps the result.
 #[cfg(target_family = "wasm")]
 #[async_trait(?Send)]
 impl NetworkWallet<Ethereum> for Eip1193Signer {
@@ -219,13 +269,15 @@ impl NetworkWallet<Ethereum> for Eip1193Signer {
     ) -> impl std::future::Future<Output = Result<<Ethereum as alloy::network::Network>::TxEnvelope, alloy::signers::Error>> + 'a {
         async move {
             if sender != self.address {
-                return Err(alloy::signers::Error::other("Sender address does not match signer address"));
+                return Err(alloy::signers::Error::other(
+                    format!("Sender {} does not match signer address {}", sender, self.address)
+                ));
             }
 
-            // Sign the transaction
+            // Delegate to TxSigner::sign_transaction
             let signature = TxSigner::sign_transaction(self, &mut tx).await?;
 
-            // Build the signed transaction envelope and convert to TxEnvelope
+            // Wrap in envelope
             Ok(tx.into_signed(signature).into())
         }
     }
