@@ -64,7 +64,6 @@ pub use i18n::{
 pub use provider::{
     Eip1193Transport,
     ChainConfig,
-    NativeCurrency,
 };
 
 #[cfg(target_arch = "wasm32")]
