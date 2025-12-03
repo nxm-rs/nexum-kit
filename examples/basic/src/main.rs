@@ -3,6 +3,7 @@ use leptos::callback::{Callback, UnsyncCallback};
 use leptos_rainbowkit::prelude::*;
 use leptos_rainbowkit::components::modals::{ConnectModal, AccountModal};
 use leptos_rainbowkit::theme::{LightTheme, DarkTheme, MidnightTheme, ThemeOptions, BorderRadius, FontStack, OverlayBlur};
+use std::collections::HashMap;
 
 fn main() {
     console_log::init_with_level(log::Level::Debug).unwrap();
@@ -66,6 +67,19 @@ fn App() -> impl IntoView {
         set_theme_mode.set(theme_mode.get().next());
     });
 
+    // Configure RPC transports for each chain
+    let mut transports = HashMap::new();
+    // Ethereum Mainnet
+    transports.insert(1, "https://eth.llamarpc.com".to_string());
+    // Sepolia testnet
+    transports.insert(11155111, "https://ethereum-sepolia-rpc.publicnode.com".to_string());
+    // Polygon
+    transports.insert(137, "https://polygon.llamarpc.com".to_string());
+    // Arbitrum
+    transports.insert(42161, "https://arbitrum.llamarpc.com".to_string());
+    // Optimism
+    transports.insert(10, "https://optimism.llamarpc.com".to_string());
+
     // Create theme options with blur enabled
     let theme_options = ThemeOptions {
         accent_color: None,
@@ -78,7 +92,7 @@ fn App() -> impl IntoView {
     view! {
         {move || match theme_mode.get() {
             ThemeMode::Light => view! {
-                <RainbowKitProvider theme=LightTheme theme_options=theme_options.clone()>
+                <RainbowKitProvider transports=transports.clone() theme=LightTheme theme_options=theme_options.clone()>
                     <AppContent
                         theme_mode=theme_mode
                         bg_color=bg_color
@@ -89,7 +103,7 @@ fn App() -> impl IntoView {
                 </RainbowKitProvider>
             }.into_any(),
             ThemeMode::Dark => view! {
-                <RainbowKitProvider theme=DarkTheme theme_options=theme_options.clone()>
+                <RainbowKitProvider transports=transports.clone() theme=DarkTheme theme_options=theme_options.clone()>
                     <AppContent
                         theme_mode=theme_mode
                         bg_color=bg_color
@@ -100,7 +114,7 @@ fn App() -> impl IntoView {
                 </RainbowKitProvider>
             }.into_any(),
             ThemeMode::Midnight => view! {
-                <RainbowKitProvider theme=MidnightTheme theme_options=theme_options.clone()>
+                <RainbowKitProvider transports=transports.clone() theme=MidnightTheme theme_options=theme_options.clone()>
                     <AppContent
                         theme_mode=theme_mode
                         bg_color=bg_color
