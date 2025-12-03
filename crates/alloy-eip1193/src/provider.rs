@@ -4,14 +4,8 @@
 //! through EIP-1193 while keeping RPC reads on the original transport.
 
 use alloy::providers::{Provider, ProviderBuilder, ProviderLayer, RootProvider};
-use alloy::network::{Network, Ethereum};
-use alloy::transports::{Transport, TransportResult};
-use alloy_json_rpc::{RequestPacket, ResponsePacket};
-use std::task::{Context, Poll};
-use std::pin::Pin;
-use std::future::Future;
+use alloy::network::Network;
 use std::marker::PhantomData;
-use tower::{Service, Layer};
 use wasm_bindgen::JsValue;
 use crate::Eip1193Transport;
 
