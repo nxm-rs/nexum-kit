@@ -2,131 +2,160 @@
 
 EIP-1193 provider and signer implementation for [Alloy](https://github.com/alloy-rs/alloy) in WebAssembly environments.
 
+> **Note**: This crate is WASM-only. To build or test, use:
+> ```bash
+> cargo build --target wasm32-unknown-unknown
+> ```
+
 ## Features
 
 - **`Eip1193Transport`**: Tower Service implementation for JSON-RPC requests via browser wallets
-- **`Eip1193Signer`**: Signer implementation that delegates signing to browser wallets
-- **`WalletOperations`**: High-level methods for wallet management (switch chains, add chains, request accounts)
+- **`WalletLayer`**: Provider layer for smart request routing
+- **`ext::Eip1193`**: Trait extension for EIP-1193 mandated wallet operations (automatically available on any provider)
+- **`Eip1193Signer`**: Signer implementation (⚠️ uses `eth_sign`, shows warnings)
 - **`ChainConfig`**: Type-safe chain configuration with builder pattern
 - Type-safe API with compile-time guarantees
 - Zero-copy serialization where possible
 - Minimal allocations for optimal WASM performance
 
-## Usage
-
-### As a Transport (for read operations)
-
-Use this when you need to make RPC calls through the browser wallet's provider:
-
-```rust
-use alloy_eip1193::Eip1193Transport;
-use alloy::providers::ProviderBuilder;
-
-let ethereum = Eip1193Transport::get_ethereum()?;
-let transport = Eip1193Transport::new(ethereum);
-let provider = ProviderBuilder::new().on_transport(transport);
-
-// Now you can use the provider for read operations
-let block_number = provider.get_block_number().await?;
-```
-
-### As a Signer (for write operations)
-
-Use this when you need the browser wallet to sign transactions or messages:
-
-```rust
-use alloy_eip1193::Eip1193Signer;
-use alloy::providers::ProviderBuilder;
-
-let signer = Eip1193Signer::from_window().await?;
-let provider = ProviderBuilder::new()
-    .with_signer(signer)
-    .on_http("https://eth.llamarpc.com".parse()?);
-
-// Now you can sign transactions
-let tx = TransactionRequest::default()
-    .to(address)
-    .value(U256::from(1000));
-let receipt = provider.send_transaction(tx).await?;
-```
-
-### Combined (Transport + Signer)
-
-For the best of both worlds - use the wallet's RPC for all operations:
-
-```rust
-use alloy_eip1193::{Eip1193Transport, Eip1193Signer, WalletOperations};
-use alloy::providers::ProviderBuilder;
-
-let ethereum = Eip1193Transport::get_ethereum()?;
-let transport = Eip1193Transport::new(ethereum.clone());
-
-// Request accounts and create signer
-let wallet = WalletOperations::new(ethereum.clone());
-let accounts = wallet.request_accounts().await?;
-let address = accounts[0];
-let signer = Eip1193Signer::new(ethereum, address);
-
-// Create provider with both transport and signer
-let provider = ProviderBuilder::new()
-    .with_signer(signer)
-    .on_transport(transport);
-```
-
-### Wallet-Specific Operations
-
-Use `WalletOperations` for wallet management tasks:
-
-```rust
-use alloy_eip1193::{WalletOperations, ChainConfig};
-use alloy_chains::NamedChain;
-
-let ethereum = Eip1193Transport::get_ethereum()?;
-let wallet = WalletOperations::new(ethereum);
-
-// Switch chains
-wallet.switch_chain(137).await?; // Switch to Polygon
-
-// Use the builder pattern for an ergonomic API
-let config = ChainConfig::builder()
-    .chain(NamedChain::Polygon)  // Auto-derives chain ID, name, and currency symbol
-    .rpc_url("https://polygon-rpc.com")
-    .rpc_url("https://polygon-backup.com")  // Multiple RPCs for redundancy
-    .block_explorer("https://polygonscan.com")
-    .build();
-wallet.add_chain(config).await?;
-
-// Or use a chain ID directly
-let config = ChainConfig::builder()
-    .chain(137u64)  // Also auto-derives metadata
-    .rpc_url("https://polygon-rpc.com")
-    .block_explorer("https://polygonscan.com")
-    .build();
-wallet.add_chain(config).await?;
-
-// Override currency details if needed
-let config = ChainConfig::builder()
-    .chain(NamedChain::Gnosis)
-    .rpc_url("https://rpc.gnosischain.com")
-    .block_explorer("https://gnosisscan.io")
-    .currency_name("xDAI Token")  // Custom name
-    .currency_decimals(18)
-    .build();
-wallet.add_chain(config).await?;
-```
-
 ## Architecture
 
-This crate is designed to work seamlessly with Alloy's provider architecture:
+This crate provides **three usage patterns** with different trade-offs:
 
-- **Transport Layer** (`transport.rs`): `Eip1193Transport` implements Tower's `Service` trait for JSON-RPC requests and provides internal request handling
-- **Signer Layer** (`signer.rs`): `Eip1193Signer` implements Alloy's `Signer`, `TxSigner`, and `NetworkWallet` traits
-- **Wallet Operations** (`wallet.rs`): `WalletOperations` provides high-level methods for wallet management (switch chains, add chains, request accounts)
-- **Chain Configuration** (`chain.rs`): `ChainConfig` with builder pattern for configuring chains with auto-derived metadata from `alloy-chains`
+### Pattern 1: Smart Routing with WalletLayer (Recommended)
 
-All components are optimized for WebAssembly and work with any EIP-1193 compliant browser wallet (MetaMask, Coinbase Wallet, etc.).
+Use `WalletLayer` to add wallet operations to any provider. The layer provides access to the wallet transport while keeping RPC reads on your configured transport (HTTP/WebSocket).
 
-## WASM-Only
+```rust
+use alloy::providers::ProviderBuilder;
+use alloy_eip1193::{WalletLayer, ext::Eip1193};
+
+// Create wallet layer from window.ethereum
+let wallet_layer = WalletLayer::from_window()?;
+
+// Add to any provider (RPC reads go to HTTP, wallet ops to browser wallet)
+let provider = ProviderBuilder::new()
+    .layer(wallet_layer)
+    .on_http("https://eth.llamarpc.com".parse()?);
+
+// Eip1193 trait methods automatically available!
+let accounts = provider.request_accounts().await?;
+provider.switch_chain(137).await?; // Switch to Polygon
+
+// Standard provider methods work normally
+let block = provider.get_block_number().await?;
+```
+
+**Benefits:**
+- ✅ Clean separation: wallet operations via EIP-1193, reads via HTTP/WS
+- ✅ `ext::Eip1193` trait extension provides ergonomic API
+- ✅ No blind signing warnings
+- ✅ Follows Alloy's layer pattern
+
+### Pattern 2: Eip1193 Extension with Any Provider
+
+The `ext::Eip1193` trait is automatically available on **any** Alloy provider. Wallet methods use `client().request()` internally, routing through whatever transport you configured.
+
+```rust
+use alloy::providers::ProviderBuilder;
+use alloy_eip1193::ext::Eip1193;
+
+// Create provider with ANY transport
+let provider = ProviderBuilder::new()
+    .on_http("https://eth.llamarpc.com".parse()?);
+
+// EIP-1193 methods automatically available!
+// (These will call through the HTTP transport)
+let accounts = provider.request_accounts().await?;
+provider.switch_chain(137).await?;
+```
+
+**Benefits:**
+- ✅ Minimal setup - no explicit wallet configuration
+- ✅ Works with any transport
+- ⚠️ All requests (including wallet ops) go through configured transport
+
+### Pattern 3: Eip1193Signer (⚠️ Shows Warnings)
+
+Use `Eip1193Signer` when you need full `NetworkWallet` compatibility. Note that this uses `eth_sign` internally, which shows scary warnings in MetaMask.
+
+```rust
+use alloy::providers::ProviderBuilder;
+use alloy_eip1193::Eip1193Signer;
+
+let signer = Eip1193Signer::from_window().await?;
+
+// ⚠️ WARNING: Uses eth_sign internally
+// MetaMask will show scary warnings to users
+let provider = ProviderBuilder::new()
+    .wallet(signer)
+    .on_http("https://eth.llamarpc.com".parse()?);
+```
+
+**When to use:**
+- Only use if you specifically need `NetworkWallet` trait
+- For better UX, prefer Pattern 1 (WalletLayer)
+
+**Caveats:**
+- ⚠️ Uses `eth_sign` which MetaMask is deprecating
+- ⚠️ Shows "dangerous" warning to users
+- ⚠️ Blind signing security concerns
+
+## Wallet-Specific Operations
+
+Use `ext::Eip1193` trait extension for wallet management:
+
+```rust
+use alloy_eip1193::{ext::Eip1193, ChainConfig};
+use alloy_chains::NamedChain;
+
+// Switch chains
+provider.switch_chain(137).await?; // Polygon
+
+// Add a new chain with builder pattern
+let config = ChainConfig::builder()
+    .chain(NamedChain::Polygon)  // Auto-derives metadata
+    .rpc_url("https://polygon-rpc.com")
+    .block_explorer("https://polygonscan.com")
+    .build();
+provider.add_chain(config).await?;
+
+// Watch an asset
+provider.watch_asset(token_address, "USDC", 6).await?;
+```
+
+
+## Chain Management
+
+The `Eip1193Signer` includes chain ID tracking and validation:
+
+```rust
+let mut signer = Eip1193Signer::from_window().await?;
+
+// Refresh chain ID from wallet
+let chain_id = signer.refresh_chain_id().await?;
+
+// Validate expected chain
+signer.validate_chain_id(1)?; // Mainnet
+
+// Get current chain
+if let Some(id) = signer.chain_id() {
+    println!("Current chain: {}", id);
+}
+```
+
+## Caveats
+
+### Signer Uses eth_sign
+
+The `Eip1193Signer` implementation uses `eth_sign` for transaction signing, which:
+- Shows warnings in MetaMask ("This is a dangerous operation")
+- Is being deprecated by wallet providers
+- Involves blind signing (security risk)
+
+**Recommendation:** Use `WalletLayer` (Pattern 1) for production applications.
+
+### WASM-Only
 
 This crate is designed exclusively for WebAssembly environments and requires:
 - `wasm-bindgen`
