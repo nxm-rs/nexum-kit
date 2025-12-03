@@ -1,0 +1,33 @@
+[package]
+name = "alloy-eip1193"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "EIP-1193 provider and signer implementation for Alloy (WASM-only)"
+keywords = ["ethereum", "eip1193", "alloy", "wasm", "browser-wallet"]
+categories = ["wasm", "web-programming", "cryptography::cryptocurrencies"]
+
+[dependencies]
+alloy = { workspace = true, features = ["provider-http", "signer-local", "rpc-types", "network", "contract", "eip712", "dyn-abi"] }
+alloy-core.workspace = true
+alloy-json-rpc.workspace = true
+alloy-chains = "0.2"
+tower.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+wasm-bindgen.workspace = true
+web-sys = { workspace = true, features = ["Window"] }
+js-sys.workspace = true
+log.workspace = true
+wasm-bindgen-futures = "0.4.56"
+serde-wasm-bindgen = "0.6.5"
+async-trait = "0.1"
+getrandom = { workspace = true }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
