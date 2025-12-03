@@ -10,6 +10,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::transport::Eip1193Transport;
 use crate::ext::Eip1193 as Eip1193Ext;
+use crate::error::Eip1193Error;
 
 /// EIP-1193 signer that uses browser wallet for signing operations only.
 ///
@@ -62,7 +63,7 @@ impl Eip1193Signer {
     ///
     /// This will request account access if not already granted and fetch the current chain ID.
     /// Uses the modern RpcClient + RootProvider + ext::Eip1193 pattern.
-    pub async fn from_window() -> Result<Self, JsValue> {
+    pub async fn from_window() -> Result<Self, Eip1193Error> {
         let ethereum = Eip1193Transport::get_ethereum()?;
         let transport = Eip1193Transport::new(ethereum.clone());
 
@@ -72,17 +73,18 @@ impl Eip1193Signer {
 
         // Use the Eip1193 trait extension to request accounts
         let accounts = provider.request_accounts().await
-            .map_err(|e| JsValue::from_str(&format!("Failed to request accounts: {:?}", e)))?;
+            .map_err(|e| Eip1193Error::from_transport_error(&e)
+                .unwrap_or_else(|| Eip1193Error::JsError(format!("Failed to request accounts: {:?}", e))))?;
 
         let address = accounts
             .first()
             .copied()
-            .ok_or_else(|| JsValue::from_str("No accounts available"))?;
+            .ok_or_else(|| Eip1193Error::JsError("No accounts available".to_string()))?;
 
         // Fetch the current chain ID from the wallet
         let chain_id_hex: String = transport.request("eth_chainId", Vec::<String>::new()).await?;
         let chain_id = u64::from_str_radix(chain_id_hex.trim_start_matches("0x"), 16)
-            .map_err(|e| JsValue::from_str(&format!("Failed to parse chain ID: {}", e)))?;
+            .map_err(|e| Eip1193Error::SerializationError(format!("Failed to parse chain ID: {}", e)))?;
 
         Ok(Self::new_with_chain_id(ethereum, address, chain_id))
     }
@@ -97,13 +99,13 @@ impl Eip1193Signer {
     ///
     /// This queries the wallet's current chain via `eth_chainId` and updates
     /// the internal chain_id field.
-    pub async fn refresh_chain_id(&mut self) -> Result<ChainId, JsValue> {
+    pub async fn refresh_chain_id(&mut self) -> Result<ChainId, Eip1193Error> {
         let chain_id_hex: String = self.transport
             .request("eth_chainId", Vec::<String>::new())
             .await?;
 
         let chain_id = u64::from_str_radix(chain_id_hex.trim_start_matches("0x"), 16)
-            .map_err(|e| JsValue::from_str(&format!("Failed to parse chain ID: {}", e)))?;
+            .map_err(|e| Eip1193Error::SerializationError(format!("Failed to parse chain ID: {}", e)))?;
 
         self.chain_id = Some(chain_id);
         Ok(chain_id)
@@ -114,13 +116,10 @@ impl Eip1193Signer {
     /// Returns an error if there's a mismatch between the wallet's current chain
     /// and the expected chain. Call `refresh_chain_id()` first to ensure the
     /// chain ID is up to date.
-    pub fn validate_chain_id(&self, expected: ChainId) -> Result<(), JsValue> {
+    pub fn validate_chain_id(&self, expected: ChainId) -> Result<(), Eip1193Error> {
         if let Some(current) = self.chain_id {
             if current != expected {
-                return Err(JsValue::from_str(&format!(
-                    "Chain ID mismatch: wallet is on chain {}, expected chain {}",
-                    current, expected
-                )));
+                return Err(Eip1193Error::ChainDisconnected(expected));
             }
         }
         Ok(())
@@ -188,14 +187,14 @@ impl Signer<Signature> for Eip1193Signer {
     /// to users before they sign.
     #[inline]
     async fn sign_dynamic_typed_data(&self, payload: &TypedData) -> Result<Signature, alloy::signers::Error> {
-        // eth_signTypedData_v4 params: [address, typed_data_json]
-        // Serialize the TypedData to a serde_json::Value
-        let payload_json = serde_json::to_value(payload)
+        // eth_signTypedData_v4 params: [address, typed_data_json_string]
+        // MetaMask expects the second parameter to be a JSON string, not an object
+        let payload_json_string = serde_json::to_string(payload)
             .map_err(|e| alloy::signers::Error::other(format!("Failed to serialize TypedData: {}", e)))?;
 
         let params = (
             format!("{:?}", self.address),
-            payload_json,
+            payload_json_string,
         );
 
         let sig_str: String = self.transport
