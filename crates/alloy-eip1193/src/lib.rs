@@ -2,53 +2,70 @@
 //!
 //! EIP-1193 provider and signer implementation for Alloy in WebAssembly environments.
 //!
-//! This crate provides:
-//! - **`Eip1193Transport`**: A tower Service implementation for JSON-RPC requests via browser wallets
-//! - **`Eip1193Signer`**: A signer implementation that delegates signing to browser wallets
-//! - **`Eip1193Requester`**: Generic typed request handler for EIP-1193 providers
+//! This crate provides three complementary patterns for browser wallet integration:
 //!
-//! ## Usage
+//! ## Components
 //!
-//! ### As a Transport (for read operations)
+//! - **`Eip1193Transport`**: Tower Service implementation for JSON-RPC requests via browser wallets
+//! - **`WalletLayer`**: Provider layer for smart request routing
+//! - **`Eip1193Signer`**: Signer implementation (⚠️ uses eth_sign, shows warnings)
+//! - **`ext::Eip1193`**: Trait extension for EIP-1193 mandated wallet operations (automatically available on any provider)
+//!
+//! ## Usage Patterns
+//!
+//! ### Pattern 1: Smart Routing with WalletLayer (Recommended)
+//!
+//! Use `WalletLayer` to add wallet operations to any provider:
 //!
 //! ```rust,ignore
-//! use alloy_eip1193::{Eip1193Transport};
 //! use alloy::providers::ProviderBuilder;
+//! use alloy_eip1193::{WalletLayer, ext::Eip1193};
 //!
-//! let ethereum = Eip1193Transport::get_ethereum()?;
+//! // Create wallet layer from window.ethereum
+//! let wallet_layer = WalletLayer::from_window()?;
+//!
+//! // Add to any provider (RPC reads go to HTTP, wallet ops to browser wallet)
+//! let provider = ProviderBuilder::new()
+//!     .layer(wallet_layer)
+//!     .on_http("https://eth.llamarpc.com".parse()?);
+//!
+//! // Eip1193 trait methods automatically available!
+//! let accounts = provider.request_accounts().await?;
+//! provider.switch_chain(137).await?;
+//! ```
+//!
+//! ### Pattern 2: Standard Alloy with Transport
+//!
+//! Use `Eip1193Transport` with standard Alloy providers:
+//!
+//! ```rust,ignore
+//! use alloy::providers::ProviderBuilder;
+//! use alloy_eip1193::{Eip1193Transport, ext::Eip1193};
+//!
 //! let transport = Eip1193Transport::new(ethereum);
 //! let provider = ProviderBuilder::new().on_transport(transport);
+//!
+//! // Eip1193 trait methods automatically available
+//! let accounts = provider.request_accounts().await?;
+//! provider.switch_chain(137).await?;
 //! ```
 //!
-//! ### As a Signer (for write operations)
+//! ### Pattern 3: With Signer (Caveat: Shows Warnings)
+//!
+//! Use `Eip1193Signer` when you need full NetworkWallet compatibility:
 //!
 //! ```rust,ignore
-//! use alloy_eip1193::Eip1193Signer;
 //! use alloy::providers::ProviderBuilder;
+//! use alloy_eip1193::Eip1193Signer;
 //!
 //! let signer = Eip1193Signer::from_window().await?;
+//!
+//! // ⚠️ WARNING: This uses eth_sign internally
+//! // MetaMask will show scary warnings to users
+//! // Only use if you need signing without broadcasting
 //! let provider = ProviderBuilder::new()
-//!     .with_signer(signer)
-//!     .on_http("https://eth.llamarpc.com".parse()?);
-//! ```
-//!
-//! ### Combined (Transport + Signer)
-//!
-//! ```rust,ignore
-//! use alloy_eip1193::{Eip1193Transport, Eip1193Signer, WalletOperations};
-//! use alloy::providers::ProviderBuilder;
-//!
-//! let ethereum = Eip1193Transport::get_ethereum()?;
-//! let transport = Eip1193Transport::new(ethereum.clone());
-//!
-//! let wallet = WalletOperations::new(ethereum.clone());
-//! let accounts = wallet.request_accounts().await?;
-//! let address = accounts[0];
-//! let signer = Eip1193Signer::new(ethereum, address);
-//!
-//! let provider = ProviderBuilder::new()
-//!     .with_signer(signer)
-//!     .on_transport(transport);
+//!     .wallet(signer)
+//!     .on_http(rpc_url);
 //! ```
 
 #![cfg_attr(not(target_family = "wasm"), allow(unused))]
@@ -57,19 +74,31 @@
 mod transport;
 mod signer;
 mod chain;
-mod wallet;
 
 pub use transport::Eip1193Transport;
 pub use signer::Eip1193Signer;
 pub use chain::ChainConfig;
-pub use wallet::WalletOperations;
+pub use provider::{WalletLayer, WalletProvider};
+
+// Re-export provider module for docs
+pub mod provider;
+
+// EIP-1193 extension traits and types
+pub mod ext;
 
 // Re-export alloy-chains types for convenience
 pub use alloy_chains::{Chain, NamedChain};
 
 /// Re-export commonly used types from dependencies
 pub mod prelude {
-    pub use crate::{Eip1193Transport, Eip1193Signer, ChainConfig, WalletOperations};
+    pub use crate::{
+        Eip1193Transport,
+        WalletLayer,
+        WalletProvider,
+        Eip1193Signer,
+        ChainConfig,
+    };
+    pub use crate::ext::Eip1193;
     pub use alloy::primitives::{Address, Signature, B256};
     pub use alloy::signers::Signer;
     pub use alloy_chains::{Chain, NamedChain};
