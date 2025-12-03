@@ -10,11 +10,9 @@
 //! - No type aliases for standard Ethereum RPC methods (those are in Alloy's Provider trait)
 //! - Only define types for wallet-specific extensions (handled in wallet.rs)
 
-use alloy::transports::{TransportError, TransportErrorKind};
+use alloy::transports::{TransportError, TransportErrorKind, TransportFut};
 use alloy_json_rpc::{RequestPacket, ResponsePacket};
 use serde::{Deserialize, Serialize};
-use std::future::Future;
-use std::pin::Pin;
 use std::task::{Context, Poll};
 use tower::Service;
 use wasm_bindgen::prelude::*;
@@ -70,6 +68,49 @@ impl Eip1193Transport {
     pub fn ethereum(&self) -> &JsValue {
         &self.ethereum
     }
+
+    /// Create an `RpcClient` from this transport
+    ///
+    /// This is the modern Alloy pattern for creating providers. The `RpcClient` can then be used
+    /// to create a `RootProvider` which gives access to all provider methods including the
+    /// `ext::Eip1193` trait.
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// use alloy_eip1193::{Eip1193Transport, ext::Eip1193};
+    /// use alloy::providers::RootProvider;
+    ///
+    /// let transport = Eip1193Transport::get_ethereum()?;
+    /// let client = transport.into_client();
+    /// let provider = RootProvider::new(client);
+    ///
+    /// // Use Eip1193 trait methods
+    /// let accounts = provider.request_accounts().await?;
+    /// provider.switch_chain(137).await?;
+    /// ```
+    pub fn into_client(self) -> alloy::rpc::client::RpcClient {
+        // Browser wallets are always "local" in the sense that they're in the same context
+        alloy::rpc::client::RpcClient::new(self, true)
+    }
+
+    /// Create an `RpcClient` from window.ethereum
+    ///
+    /// This is a convenience method that combines `get_ethereum()` and `into_client()`.
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// use alloy_eip1193::Eip1193Transport;
+    /// use alloy::providers::RootProvider;
+    ///
+    /// let client = Eip1193Transport::client_from_window()?;
+    /// let provider = RootProvider::new(client);
+    /// ```
+    pub fn client_from_window() -> Result<alloy::rpc::client::RpcClient, JsValue> {
+        let ethereum = Self::get_ethereum()?;
+        let transport = Self::new(ethereum);
+        Ok(transport.into_client())
+    }
+
 
     /// Make a typed RPC request to the wallet
     ///
@@ -133,8 +174,8 @@ impl Eip1193Transport {
 impl Service<RequestPacket> for Eip1193Transport {
     type Response = ResponsePacket;
     type Error = TransportError;
-    // WASM doesn't actually use Send, so we can skip it
-    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
+    // Use Alloy's TransportFut which handles WASM/non-WASM Send differences
+    type Future = TransportFut<'static>;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         Poll::Ready(Ok(()))
@@ -143,7 +184,7 @@ impl Service<RequestPacket> for Eip1193Transport {
     fn call(&mut self, req: RequestPacket) -> Self::Future {
         let transport = self.clone();
 
-        Box::pin(async move {
+        let fut = async move {
             // Serialize the request to JSON for logging
             let request_json = serde_json::to_string(&req)
                 .map_err(|e| TransportErrorKind::custom_str(&format!("{:?}", e)))?;
@@ -175,6 +216,9 @@ impl Service<RequestPacket> for Eip1193Transport {
             // Deserialize to ResponsePacket
             serde_json::from_str(&result_json)
                 .map_err(|e| TransportErrorKind::custom_str(&format!("{:?}", e)))
-        })
+        };
+
+        // Use BoxFuture which automatically handles Send for WASM vs non-WASM
+        Box::pin(fut)
     }
 }
