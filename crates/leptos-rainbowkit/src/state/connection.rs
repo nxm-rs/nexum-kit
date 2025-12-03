@@ -2,7 +2,7 @@ use leptos::prelude::*;
 use alloy::primitives::Address;
 use alloy::providers::ProviderBuilder;
 use crate::wallets::wallet::WalletConnector;
-use crate::provider::eip1193_signer::Eip1193Signer;
+use crate::provider::{Eip1193Signer, Eip1193Transport};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::js_sys;
@@ -301,7 +301,7 @@ impl ConnectionState {
                 let signer = Eip1193Signer::new(ethereum_js.clone(), address);
 
                 // Get current chain ID from wallet
-                let transport = crate::provider::eip1193::Eip1193Transport::new(ethereum_js.clone());
+                let transport = Eip1193Transport::new(ethereum_js.clone());
                 let chain_id = self.get_current_chain_id(&transport).await?;
 
                 // Get consumer's RPC URL for this chain
@@ -343,7 +343,7 @@ impl ConnectionState {
     }
 
     /// Get current chain ID from wallet
-    async fn get_current_chain_id(&self, transport: &crate::provider::eip1193::Eip1193Transport) -> Result<u64, JsValue> {
+    async fn get_current_chain_id(&self, transport: &Eip1193Transport) -> Result<u64, JsValue> {
         let request_obj = js_sys::Object::new();
         js_sys::Reflect::set(&request_obj, &"method".into(), &"eth_chainId".into())
             .map_err(|e| JsValue::from_str(&format!("Failed to create request: {:?}", e)))?;
