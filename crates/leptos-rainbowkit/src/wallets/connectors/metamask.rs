@@ -1,7 +1,10 @@
 use crate::wallets::wallet::{WalletConnector, WalletMetadata, DownloadUrls, ConnectionMethod};
 use crate::wallets::connector::{get_injected_provider, is_metamask, ProviderFlag};
-use crate::provider::WalletOperations;
+use crate::provider::Eip1193;
 use alloy::primitives::Address;
+use alloy::providers::RootProvider;
+use alloy::network::Ethereum;
+use alloy_eip1193::Eip1193Transport;
 use wasm_bindgen::prelude::*;
 
 /// MetaMask wallet connector
@@ -54,9 +57,13 @@ impl WalletConnector for MetaMaskConnector {
             .get_ethereum()
             .ok_or_else(|| JsValue::from_str("MetaMask not installed"))?;
 
-        // Use WalletOperations to request accounts
-        let wallet = WalletOperations::new(ethereum);
-        let accounts = wallet.request_accounts().await?;
+        // Use modern RpcClient + Provider pattern with Eip1193 trait
+        let transport = Eip1193Transport::new(ethereum);
+        let client = transport.into_client();
+        let provider = RootProvider::<Ethereum>::new(client);
+
+        let accounts = provider.request_accounts().await
+            .map_err(|e| JsValue::from_str(&format!("Failed to request accounts: {:?}", e)))?;
 
         let address = accounts
             .first()

@@ -5,7 +5,7 @@ pub use alloy_eip1193::{
     Eip1193Transport,
     Eip1193Signer,
     ChainConfig,
-    WalletOperations,
+    ext::Eip1193,
 };
 
 pub use client::create_http_provider;
