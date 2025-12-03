@@ -74,11 +74,13 @@
 mod transport;
 mod signer;
 mod chain;
+mod error;
 
 pub use transport::Eip1193Transport;
 pub use signer::Eip1193Signer;
 pub use chain::ChainConfig;
 pub use provider::{WalletLayer, WalletProvider};
+pub use error::Eip1193Error;
 
 // Re-export provider module for docs
 pub mod provider;
@@ -97,9 +99,36 @@ pub mod prelude {
         WalletProvider,
         Eip1193Signer,
         ChainConfig,
+        Eip1193Error,
     };
     pub use crate::ext::Eip1193;
     pub use alloy::primitives::{Address, Signature, B256};
     pub use alloy::signers::Signer;
     pub use alloy_chains::{Chain, NamedChain};
+
+    /// Helper function to format user-friendly error messages from TransportErrors
+    ///
+    /// This function attempts to extract EIP-1193 error information from Alloy transport errors
+    /// and return a user-friendly message. Falls back to the full error message if the error
+    /// is not an EIP-1193 error.
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// use alloy_eip1193::prelude::*;
+    ///
+    /// match provider.send_transaction(tx).await {
+    ///     Ok(result) => { /* success */ },
+    ///     Err(err) => {
+    ///         let message = format_transport_error(&err);
+    ///         println!("Error: {}", message);
+    ///     }
+    /// }
+    /// ```
+    pub fn format_transport_error(err: &alloy::transports::TransportError) -> String {
+        if let Some(eip1193_err) = Eip1193Error::from_transport_error(err) {
+            format!("❌ {}", eip1193_err.user_message())
+        } else {
+            format!("❌ {}", err)
+        }
+    }
 }
