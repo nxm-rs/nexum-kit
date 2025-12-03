@@ -19,7 +19,16 @@ pub fn ConnectModal() -> impl IntoView {
     let discovered_wallets = RwSignal::new(Vec::<EIP6963ProviderInfo>::new());
 
     // Setup EIP-6963 discovery when component mounts
+    // Use a StoredValue to track if we've already set up discovery
+    let discovery_setup = StoredValue::new(false);
+
     Effect::new(move |_| {
+        // Only run once
+        if discovery_setup.get_value() {
+            return;
+        }
+        discovery_setup.set_value(true);
+
         log::info!("Setting up EIP-6963 wallet discovery");
 
         setup_eip6963_discovery(move |provider| {

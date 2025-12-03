@@ -9,6 +9,7 @@ use alloy::primitives::Address;
 /// - EIP-1193 signer for wallet signing operations
 ///
 /// This matches the wagmi v2 architecture.
+#[derive(Clone, Copy)]
 pub struct WalletInfo {
     pub address: Signal<Option<Address>>,
     pub chain_id: Signal<Option<u64>>,
@@ -25,6 +26,41 @@ pub struct WalletInfo {
     ///
     /// Note: Chain changes are automatically synced via EIP-1193 events
     pub provider: Signal<Option<WalletProvider>>,
+}
+
+impl WalletInfo {
+    /// Get the address without reactive tracking
+    ///
+    /// Use this in event handlers or async contexts where you don't want
+    /// to create reactive dependencies.
+    pub fn address_untracked(&self) -> Option<Address> {
+        self.address.get_untracked()
+    }
+
+    /// Get the chain ID without reactive tracking
+    pub fn chain_id_untracked(&self) -> Option<u64> {
+        self.chain_id.get_untracked()
+    }
+
+    /// Get the provider without reactive tracking
+    pub fn provider_untracked(&self) -> Option<WalletProvider> {
+        self.provider.get_untracked()
+    }
+
+    /// Check if connected without reactive tracking
+    pub fn is_connected_untracked(&self) -> bool {
+        self.is_connected.get_untracked()
+    }
+
+    /// Check if connecting without reactive tracking
+    pub fn is_connecting_untracked(&self) -> bool {
+        self.is_connecting.get_untracked()
+    }
+
+    /// Get the connector ID without reactive tracking
+    pub fn connector_id_untracked(&self) -> Option<String> {
+        self.connector_id.get_untracked()
+    }
 }
 
 /// Hook to access wallet connection information and Alloy provider

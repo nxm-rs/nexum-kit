@@ -2,7 +2,7 @@ use leptos::prelude::*;
 use alloy::primitives::Address;
 use alloy::providers::ProviderBuilder;
 use crate::wallets::wallet::WalletConnector;
-use crate::provider::{Eip1193Signer, Eip1193Transport};
+use crate::provider::Eip1193Transport;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::js_sys;
@@ -297,9 +297,6 @@ impl ConnectionState {
                 let ethereum_js = connector.get_provider()
                     .ok_or_else(|| JsValue::from_str("Connector did not provide ethereum provider"))?;
 
-                // Create EIP-1193 signer from wallet
-                let signer = Eip1193Signer::new(ethereum_js.clone(), address);
-
                 // Get current chain ID from wallet
                 let transport = Eip1193Transport::new(ethereum_js.clone());
                 let chain_id = self.get_current_chain_id(&transport).await?;
@@ -311,11 +308,16 @@ impl ConnectionState {
 
                 log::info!("Using RPC URL: {} for chain {}", rpc_url, chain_id);
 
-                // Create HTTP provider with consumer's RPC + wallet signer
+                // Create WalletLayer to route wallet operations through EIP-1193
+                let wallet_layer = alloy_eip1193::WalletLayer::new(ethereum_js.clone());
+
+                // Create provider with WalletLayer + HTTP transport
+                // This routes wallet operations (eth_sendTransaction) to browser wallet
+                // while RPC reads go to the HTTP provider
                 let url: reqwest::Url = rpc_url.parse().map_err(|e| JsValue::from_str(&format!("Invalid RPC URL: {}", e)))?;
                 let provider = ProviderBuilder::new()
-                    .wallet(signer)
-                    .connect_http(url);
+                    .layer(wallet_layer)
+                    .on_http(url);
 
                 // Wrap in Arc to make it cloneable for Leptos signals
                 let provider: WalletProvider = Arc::new(provider);
@@ -330,7 +332,7 @@ impl ConnectionState {
                 self.provider.set(Some(provider));
                 self.status.set(ConnectionStatus::Connected);
 
-                log::info!("Connection successful, provider created with HTTP transport + EIP-1193 signer");
+                log::info!("Connection successful, provider created with WalletLayer + HTTP transport");
                 Ok(())
             }
             Err(e) => {
