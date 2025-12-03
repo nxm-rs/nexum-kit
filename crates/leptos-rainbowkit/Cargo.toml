@@ -10,6 +10,7 @@ keywords = ["leptos", "ethereum", "web3", "wallet", "blockchain"]
 categories = ["wasm", "web-programming", "gui"]
 
 [dependencies]
+alloy-eip1193 = { path = "../alloy-eip1193" }
 leptos.workspace = true
 leptos_meta.workspace = true
 leptos_router.workspace = true
