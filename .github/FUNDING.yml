@@ -1,4 +1,14 @@
-# Nexum-Kit Funding
+# Nexum-Kit Community Funding
+#
+# All contributions support the development and maintenance of this
+# open-source project. Funds are used for:
+# - Infrastructure costs (CI/CD, hosting, domain names)
+# - Bug bounties and contributor rewards
+# - Documentation and educational resources
+# - Community events and workshops
 
-# Support Nexum-Kit development via Ethereum
-custom: ["0xC1FC64b34FA86D8fac48565E44882a32cC08EB97"]
+# GitHub Sponsors - Organization account for collective funding
+github: nxm-rs
+
+# Cryptocurrency addresses for decentralized support
+custom: ["Ethereum: 0xC1FC64b34FA86D8fac48565E44882a32cC08EB97"]
