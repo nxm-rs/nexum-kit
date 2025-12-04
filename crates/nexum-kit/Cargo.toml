@@ -1,12 +1,13 @@
 [package]
-name = "leptos-rainbowkit"
+name = "nexum-kit"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
-license.workspace = true
+license = "AGPL-3.0-or-later"
 repository.workspace = true
-description = "Leptos component library for connecting Ethereum wallets (WASM-only)"
-keywords = ["leptos", "ethereum", "web3", "wallet", "blockchain"]
+homepage.workspace = true
+description = "Type-safe Web3 wallet connection components for Leptos"
+keywords = ["leptos", "ethereum", "web3", "wallet", "wasm"]
 categories = ["wasm", "web-programming", "gui"]
 
 [dependencies]

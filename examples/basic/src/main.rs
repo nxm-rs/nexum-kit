@@ -1,9 +1,9 @@
 use leptos::prelude::*;
 use leptos::callback::{Callback, UnsyncCallback};
 use leptos::task::spawn_local;
-use leptos_rainbowkit::prelude::*;
-use leptos_rainbowkit::components::modals::{ConnectModal, AccountModal};
-use leptos_rainbowkit::theme::{LightTheme, DarkTheme, MidnightTheme, ThemeOptions, BorderRadius, FontStack, OverlayBlur};
+use nexum_kit::prelude::*;
+use nexum_kit::components::modals::{ConnectModal, AccountModal};
+use nexum_kit::theme::{LightTheme, DarkTheme, MidnightTheme, ThemeOptions, BorderRadius, FontStack, OverlayBlur};
 use std::collections::HashMap;
 use alloy::signers::Signer;
 use alloy::dyn_abi::eip712::TypedData;

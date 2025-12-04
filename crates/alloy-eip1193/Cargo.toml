@@ -3,10 +3,11 @@ name = "alloy-eip1193"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
-license.workspace = true
+license = "MIT"
 repository.workspace = true
-description = "EIP-1193 provider and signer implementation for Alloy (WASM-only)"
-keywords = ["ethereum", "eip1193", "alloy", "wasm", "browser-wallet"]
+homepage.workspace = true
+description = "EIP-1193 provider and signer implementation for Alloy - Part of Nexum-Kit"
+keywords = ["ethereum", "eip1193", "alloy", "wasm", "web3"]
 categories = ["wasm", "web-programming", "cryptography::cryptocurrencies"]
 
 [dependencies]

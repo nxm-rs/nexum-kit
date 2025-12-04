@@ -1,7 +1,7 @@
 [workspace]
 members = [
   "crates/alloy-eip1193",
-  "crates/leptos-rainbowkit",
+  "crates/nexum-kit",
   "crates/leptos-rainbow-button",
   "crates/create-leptos-rainbowkit",
   "examples/basic",
@@ -11,9 +11,9 @@ resolver = "2"
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-authors = ["RainbowKit Contributors"]
-license = "MIT"
-repository = "https://github.com/rainbow-me/rainbowkit"
+authors = ["nxm-rs contributors"]
+repository = "https://github.com/nxm-rs/nexum-kit"
+homepage = "https://github.com/nxm-rs/nexum-kit"
 
 [workspace.dependencies]
 leptos = { version = "0.8", features = ["csr"] }

@@ -1,4 +1,28 @@
-MIT License
+# Nexum-Kit Licensing
+
+This repository contains code under multiple licenses:
+
+## Rust/Leptos Components (nexum-kit)
+- **Location**: `crates/nexum-kit/`
+- **License**: GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)
+- **Full License**: See `crates/nexum-kit/LICENSE-AGPL`
+- **Copyright**: (c) 2024 nxm-rs contributors
+
+## Alloy EIP-1193 Integration (alloy-eip1193)
+- **Location**: `crates/alloy-eip1193/`
+- **License**: MIT License
+- **Full License**: See `crates/alloy-eip1193/LICENSE-MIT`
+- **Copyright**: (c) 2024 nxm-rs contributors
+
+## TypeScript/React Packages (Original RainbowKit)
+- **Location**: `packages/`, `site/`, TypeScript examples
+- **License**: MIT License (Original)
+- **Copyright**: (c) 2024 Rainbow
+- **Status**: In transition - see NOTICE file for attribution
+
+---
+
+MIT License (Original RainbowKit - TypeScript/React packages)
 
 Copyright (c) 2024 Rainbow
 

@@ -1,85 +1,193 @@
-<a href="https://rainbowkit.com">
-  <img alt="rainbowkit" src="https://user-images.githubusercontent.com/372831/168174718-685980e0-391e-4621-94a1-29bf83979fa5.png" />
-</a>
+# Nexum-Kit 🔗
 
-# RainbowKit &nbsp; [![Version](https://img.shields.io/npm/v/@rainbow-me/rainbowkit?colorA=1f2937&colorB=3b82f6&labelColor=1f2937)](https://www.npmjs.com/package/@rainbow-me/rainbowkit) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/rainbow-me/rainbowkit)
+> **⚠️ WORK IN PROGRESS**: This repository is undergoing an active migration from TypeScript/React to Rust/Leptos. The Rust implementation is functional but not feature-complete. See [Migration Status](#migration-status) below.
 
-**The best way to connect a wallet 🌈**
+**Type-safe Web3 wallet connections for Rust/Leptos**
 
-RainbowKit is a [React](https://reactjs.org/) library that makes it easy to add wallet connection to your dapp.
+Nexum-Kit is a Rust/WASM port of [RainbowKit](https://github.com/rainbow-me/rainbowkit), providing type-safe, developer-friendly wallet connection components for Leptos applications. Built on [Alloy](https://github.com/alloy-rs/alloy) and EIP-1193, Nexum-Kit brings Rust's type safety and performance to Web3 dApp development.
 
-- 🔥 Out-of-the-box wallet management
-- ✅ Easily customizable
-- 🦄 Built on top of [wagmi](https://wagmi.sh) and [viem](https://viem.sh)
+**nexum** (Latin): bond, connection, obligation
 
-## Quick start
+## Features
 
-You can scaffold a new RainbowKit + [wagmi](https://wagmi.sh) + [Next.js](https://nextjs.org) app with one of the following commands, using your package manager of choice:
+- 🦀 **Type-Safe**: Leverage Rust's type system for compile-time safety
+- ⚡ **Performance**: WASM-compiled for near-native browser performance
+- 🔌 **EIP-1193 Native**: First-class browser wallet integration
+- 🎨 **Themeable**: Customizable UI components with multiple built-in themes
+- 🌐 **Multi-Chain**: Support for Ethereum and EVM-compatible chains
+- 📦 **Modular**: Use what you need - from full UI kit to low-level primitives
 
-```bash
-npm init @rainbow-me/rainbowkit@latest
-# or
-pnpm create @rainbow-me/rainbowkit@latest
-# or
-yarn create @rainbow-me/rainbowkit
+## Architecture
+
+Nexum-Kit consists of two main crates:
+
+### `nexum-kit` (AGPL-3.0)
+Leptos component library providing:
+- Wallet connection UI components
+- Account management modals
+- Chain switching interfaces
+- Themed, customizable design system
+
+### `alloy-eip1193` (MIT)
+Low-level Alloy integration providing:
+- EIP-1193 transport layer for browser wallets
+- Type-safe error handling for wallet operations
+- Provider and signer implementations
+- Wallet discovery via EIP-6963
+
+## Quick Start
+
+### Installation
+
+Add Nexum-Kit to your `Cargo.toml`:
+
+```toml
+[dependencies]
+nexum-kit = { git = "https://github.com/nxm-rs/nexum-kit" }
+alloy = { version = "1.1", features = ["provider-http", "signer-local"] }
+leptos = "0.8"
 ```
 
-## Documentation
+### Basic Usage
 
-For full documentation, visit [rainbowkit.com](https://rainbowkit.com).
+```rust
+use leptos::*;
+use nexum_kit::prelude::*;
+use nexum_kit::components::modals::ConnectModal;
 
-### Try it out
+#[component]
+pub fn App() -> impl IntoView {
+    view! {
+        <ConnectModal />
+        <YourDappComponents />
+    }
+}
+```
 
-You can use the CodeSandbox links below to try out RainbowKit:
+### Connect to a Wallet
 
-- with [Create React App](https://codesandbox.io/p/sandbox/github/rainbow-me/rainbowkit/tree/main/examples/with-create-react-app)
-- with [Next.js](https://codesandbox.io/p/sandbox/github/rainbow-me/rainbowkit/tree/main/examples/with-next)
-- with [Next.js App Router](https://codesandbox.io/p/sandbox/github/rainbow-me/rainbowkit/tree/main/examples/with-next-app)
-- with [Remix](https://codesandbox.io/p/sandbox/github/rainbow-me/rainbowkit/tree/main/examples/with-remix)
-- with [Vite](https://codesandbox.io/p/sandbox/github/rainbow-me/rainbowkit/tree/main/examples/with-vite)
-- with [React Router](https://codesandbox.io/p/sandbox/github/rainbow-me/rainbowkit/tree/main/examples/with-react-router)
+```rust
+use alloy_eip1193::prelude::*;
+use alloy::providers::RootProvider;
+
+// Create provider from browser wallet
+let transport = Eip1193Transport::client_from_window()?;
+let provider = RootProvider::new(transport);
+
+// Request account access
+let accounts = provider.request_accounts().await?;
+
+// Send transactions
+let tx = TransactionRequest::default()
+    .to(address!("0x..."))
+    .value(U256::from(1000000000000000000u64));
+
+let pending = provider.send_transaction(tx).await?;
+```
+
+## Migration Status
+
+### ✅ Completed
+- [x] EIP-1193 transport layer and error handling
+- [x] Basic wallet connection flow
+- [x] Account display and management
+- [x] EIP-6963 wallet discovery
+- [x] Multi-chain support (chain switching)
+- [x] Transaction sending with error handling
+- [x] Theme system (Light, Dark, Midnight)
+
+### 🚧 In Progress
+- [ ] Complete component library parity with RainbowKit
+- [ ] Wallet connection persistence
+- [ ] Advanced chain configuration
+- [ ] Sign-In with Ethereum (SIWE) integration
+- [ ] Comprehensive documentation
+- [ ] Example applications
+
+### 📋 Planned
+- [ ] Additional wallet connectors
+- [ ] WalletConnect integration
+- [ ] Mobile wallet support
+- [ ] Testing suite
+- [ ] Performance optimizations
 
 ## Examples
 
-The following examples are provided in the [examples](./examples/) folder of this repo.
+See the [`examples/basic/`](./examples/basic/) directory for a working example application.
 
-- `with-create-react-app`
-- `with-next`
-- `with-next-app`
-- `with-next-custom-button`
-- `with-next-mint-nft`
-- `with-next-siwe-next-auth`
-- `with-next-siwe-iron-session`
-- `with-remix`
-- `with-vite`
-- `with-react-router`
-
-### Running examples
-
-To run an example locally, install dependencies.
+To run the example:
 
 ```bash
-pnpm install
+cd examples/basic
+trunk serve
 ```
 
-Then go into an example directory, eg: `with-next`.
+Then open http://localhost:8080 in your browser with a Web3 wallet installed (MetaMask, Coinbase Wallet, etc.).
+
+## Development
+
+### Prerequisites
+
+- Rust 1.75+
+- wasm32-unknown-unknown target
+- trunk for WASM development
+
+### Building
 
 ```bash
-cd examples/with-next
+# Install trunk
+cargo install trunk
+
+# Build all crates
+cargo build --target wasm32-unknown-unknown
+
+# Run example
+cd examples/basic && trunk serve
 ```
 
-Then run the dev script.
+## Dual Licensing
 
-```bash
-pnpm run dev
-```
+This repository contains code under multiple licenses:
+
+- **`nexum-kit`** (Rust/Leptos components): **AGPL-3.0-or-later**
+  - Ensures derivative works remain open source
+  - See [`crates/nexum-kit/LICENSE-AGPL`](./crates/nexum-kit/LICENSE-AGPL)
+
+- **`alloy-eip1193`** (Alloy integration): **MIT**
+  - Enables broader adoption and upstream contributions
+  - See [`crates/alloy-eip1193/LICENSE-MIT`](./crates/alloy-eip1193/LICENSE-MIT)
+
+- **TypeScript/React packages**: **MIT** (Original RainbowKit)
+  - In transition - not actively maintained
+
+See [`LICENSE`](./LICENSE) for complete licensing details and [`NOTICE`](./NOTICE) for attribution.
+
+## Attribution
+
+Nexum-Kit is a derivative work based on [RainbowKit](https://github.com/rainbow-me/rainbowkit) by [Rainbow](https://rainbow.me). We are grateful to the Rainbow team for their excellent work on the original project. This Rust/Leptos port reimplements RainbowKit's functionality using Rust, WASM, and the Alloy library ecosystem.
 
 ## Contributing
 
-Please follow our [contributing guidelines](/.github/CONTRIBUTING.md).
+Contributions are welcome! Please note the dual-licensing structure:
+
+- Contributions to `nexum-kit/` fall under AGPL-3.0-or-later
+- Contributions to `alloy-eip1193/` fall under MIT
+
+See [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for guidelines.
+
+## Funding
+
+Support development via Ethereum:
+
+**0xC1FC64b34FA86D8fac48565E44882a32cC08EB97**
+
+## Links
+
+- **Original RainbowKit**: https://rainbowkit.com
+- **Alloy**: https://github.com/alloy-rs/alloy
+- **Leptos**: https://github.com/leptos-rs/leptos
+- **Issues**: https://github.com/nxm-rs/nexum-kit/issues
 
 ## License
 
-Licensed under the MIT License, Copyright © 2022-present [Rainbow](https://rainbow.me).
-
-See [LICENSE](/LICENSE) for more information.
+Dual-licensed - see [`LICENSE`](./LICENSE) for details.

@@ -1,0 +1,65 @@
+NOTICE
+
+Nexum-Kit
+Copyright (c) 2024 nxm-rs contributors
+
+This software is a derivative work based on RainbowKit, and includes substantial
+modifications and new implementations.
+
+================================================================================
+
+ORIGINAL WORK: RainbowKit
+Copyright (c) 2022-present Rainbow
+Licensed under the MIT License
+Repository: https://github.com/rainbow-me/rainbowkit
+
+RainbowKit is a React library that makes it easy to add wallet connection to dApps.
+We are grateful to the Rainbow team for their excellent work on the original project.
+
+================================================================================
+
+MODIFICATIONS AND DERIVATIVE WORK
+
+This derivative work (Nexum-Kit) includes:
+
+1. Complete port from TypeScript/React to Rust/Leptos
+2. New EIP-1193 integration layer for Alloy (alloy-eip1193)
+3. Type-safe wallet connection components for Leptos
+4. WASM-based browser wallet integration
+5. Comprehensive error handling for EIP-1193 provider errors
+6. Native Rust implementations of wallet discovery and connection patterns
+
+The Rust/Leptos implementation (nexum-kit) is licensed under AGPL-3.0-or-later
+to ensure derivative works remain open source.
+
+The Alloy integration layer (alloy-eip1193) is licensed under MIT to maintain
+compatibility with the broader Alloy ecosystem and enable upstream contributions.
+
+================================================================================
+
+THIRD-PARTY DEPENDENCIES
+
+This software makes use of several open-source libraries:
+
+- Leptos: MIT License (https://github.com/leptos-rs/leptos)
+- Alloy: MIT/Apache-2.0 License (https://github.com/alloy-rs/alloy)
+- wagmi (inspiration): MIT License (https://github.com/wevm/wagmi)
+- viem (inspiration): MIT License (https://github.com/wevm/viem)
+
+For a complete list of dependencies and their licenses, see the Cargo.toml
+files in each crate.
+
+================================================================================
+
+ATTRIBUTION REQUIREMENTS
+
+When using or distributing this software, you must:
+
+1. Maintain this NOTICE file and all copyright notices
+2. Comply with the AGPL-3.0-or-later license for nexum-kit components
+3. Comply with the MIT license for alloy-eip1193 components
+4. Acknowledge the original RainbowKit project when appropriate
+
+For the original RainbowKit project, please visit:
+https://rainbowkit.com
+https://github.com/rainbow-me/rainbowkit
