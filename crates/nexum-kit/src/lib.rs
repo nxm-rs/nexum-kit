@@ -1,4 +1,4 @@
-//! Leptos-RainbowKit - Web3 wallet connection library for Leptos
+//! NexumKit - Web3 wallet connection library for Leptos
 //!
 //! This library provides a set of components for connecting Ethereum wallets
 //! in Leptos applications with a focus on CSR (client-side rendering).
@@ -30,7 +30,7 @@ pub mod prelude;
 // Re-exports
 pub use components::{
     ConnectButton,
-    RainbowKitProvider,
+    NexumKitProvider,
     ConnectModal,
     AccountModal,
 };

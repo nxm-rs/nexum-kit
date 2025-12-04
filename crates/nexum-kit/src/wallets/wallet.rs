@@ -65,7 +65,7 @@ pub enum ConnectionMethod {
 /// Trait for wallet connectors
 ///
 /// Each wallet implements this trait to provide connection functionality.
-/// This follows the pattern from the original RainbowKit but adapted for Rust/Leptos.
+/// This follows the pattern from the original NexumKit but adapted for Rust/Leptos.
 pub trait WalletConnector {
     /// Get wallet metadata
     fn metadata(&self) -> &WalletMetadata;

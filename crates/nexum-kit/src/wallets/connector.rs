@@ -4,7 +4,7 @@ use web_sys::Window;
 
 /// Provider flags used to identify specific wallets
 ///
-/// Follows the pattern from the original RainbowKit's WalletProviderFlags
+/// Follows the pattern from the original NexumKit's WalletProviderFlags
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProviderFlag {
     IsMetaMask,

@@ -37,7 +37,7 @@ pub fn translations() -> HashMap<&'static str, &'static str> {
     map.insert("wallet.metamask", "MetaMask");
     map.insert("wallet.walletconnect", "WalletConnect");
     map.insert("wallet.coinbase", "Coinbase Wallet");
-    map.insert("wallet.rainbow", "Rainbow");
+    map.insert("wallet.nexum", "Nexum");
     map.insert("wallet.trust", "Trust Wallet");
 
     // Errors

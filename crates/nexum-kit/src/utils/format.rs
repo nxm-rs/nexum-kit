@@ -5,7 +5,7 @@ use alloy::primitives::Address;
 /// Truncates the address to show first 6 and last 4 characters (including 0x prefix).
 /// Example: 0x1234567890abcdef... -> 0x1234...cdef
 ///
-/// This matches the original RainbowKit's address formatting behavior.
+/// This matches the original NexumKit's address formatting behavior.
 pub fn format_address(address: &Address) -> String {
     let addr_str = format!("{:?}", address);
 
@@ -29,7 +29,7 @@ pub fn format_address(address: &Address) -> String {
 /// # Example
 ///
 /// ```rust
-/// use leptos_rainbowkit::utils::format_balance;
+/// use nexumkit::utils::format_balance;
 ///
 /// // 1.5 ETH (1500000000000000000 wei)
 /// let formatted = format_balance(1_500_000_000_000_000_000, 18);

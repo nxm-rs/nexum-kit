@@ -31,9 +31,9 @@ pub fn ConnectButton() -> impl IntoView {
 
     view! {
         <button
-            class="rk-button rk-button-primary"
+            class="nk-button nk-button-primary"
             on:click=handle_click
-            data-rk=""
+            data-nk=""
             disabled=move || wallet.is_connecting.get()
             style=move || {
                 if wallet.is_connecting.get() {

@@ -115,14 +115,14 @@ pub fn ConnectModal() -> impl IntoView {
                                         gap: 12px;
                                         width: 100%;
                                         padding: 16px;
-                                        background: var(--rk-colors-modalBackground);
-                                        border: 1px solid var(--rk-colors-actionButtonBorder);
-                                        border-radius: var(--rk-radii-actionButton);
+                                        background: var(--nk-colors-modalBackground);
+                                        border: 1px solid var(--nk-colors-actionButtonBorder);
+                                        border-radius: var(--nk-radii-actionButton);
                                         transition: all 0.125s ease;
-                                        font-family: var(--rk-fonts-body);
+                                        font-family: var(--nk-fonts-body);
                                         font-size: 16px;
                                         font-weight: 600;
-                                        color: var(--rk-colors-modalText);
+                                        color: var(--nk-colors-modalText);
                                     ";
 
                                     if connection_state_for_style.is_connecting() {
@@ -146,8 +146,8 @@ pub fn ConnectModal() -> impl IntoView {
                                 // Show "Installed" badge for EIP-6963 wallets
                                 <span style="
                                     padding: 4px 8px;
-                                    background: var(--rk-colors-accentColor);
-                                    color: var(--rk-colors-accentColorForeground);
+                                    background: var(--nk-colors-accentColor);
+                                    color: var(--nk-colors-accentColorForeground);
                                     border-radius: 6px;
                                     font-size: 12px;
                                     font-weight: 600;

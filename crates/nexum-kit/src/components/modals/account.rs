@@ -46,8 +46,8 @@ pub fn AccountModal() -> impl IntoView {
                 // Address display
                 <div style="
                     padding: 16px;
-                    background: var(--rk-colors-modalBackgroundSecondary);
-                    border-radius: var(--rk-radii-modal);
+                    background: var(--nk-colors-modalBackgroundSecondary);
+                    border-radius: var(--nk-radii-modal);
                     margin-bottom: 16px;
                 ">
                     <Text
@@ -74,11 +74,11 @@ pub fn AccountModal() -> impl IntoView {
                     style="
                         width: 100%;
                         padding: 12px 16px;
-                        background: var(--rk-colors-modalBackground);
-                        border: 1px solid var(--rk-colors-actionButtonBorder);
-                        border-radius: var(--rk-radii-actionButton);
-                        color: var(--rk-colors-error);
-                        font-family: var(--rk-fonts-body);
+                        background: var(--nk-colors-modalBackground);
+                        border: 1px solid var(--nk-colors-actionButtonBorder);
+                        border-radius: var(--nk-radii-actionButton);
+                        color: var(--nk-colors-error);
+                        font-family: var(--nk-fonts-body);
                         font-size: 16px;
                         font-weight: 600;
                         cursor: pointer;

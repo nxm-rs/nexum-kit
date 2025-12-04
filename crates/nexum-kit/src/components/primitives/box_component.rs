@@ -101,7 +101,7 @@ pub fn Box(
             styles.push(format!("font-size: {};", fs));
         }
         if let Some(c) = color {
-            styles.push(format!("color: var(--rk-colors-{}, {});", c, c));
+            styles.push(format!("color: var(--nk-colors-{}, {});", c, c));
         }
         if let Some(p) = padding {
             styles.push(format!("padding: {};", p));
@@ -145,62 +145,62 @@ pub fn Box(
     // Create the element dynamically based on tag
     match tag {
         "div" => view! {
-            <div class=class_attr style=style data-rk="">
+            <div class=class_attr style=style data-nk="">
                 {children.map(|c| c())}
             </div>
         }.into_any(),
         "span" => view! {
-            <span class=class_attr style=style data-rk="">
+            <span class=class_attr style=style data-nk="">
                 {children.map(|c| c())}
             </span>
         }.into_any(),
         "p" => view! {
-            <p class=class_attr style=style data-rk="">
+            <p class=class_attr style=style data-nk="">
                 {children.map(|c| c())}
             </p>
         }.into_any(),
         "h1" => view! {
-            <h1 class=class_attr style=style data-rk="">
+            <h1 class=class_attr style=style data-nk="">
                 {children.map(|c| c())}
             </h1>
         }.into_any(),
         "h2" => view! {
-            <h2 class=class_attr style=style data-rk="">
+            <h2 class=class_attr style=style data-nk="">
                 {children.map(|c| c())}
             </h2>
         }.into_any(),
         "h3" => view! {
-            <h3 class=class_attr style=style data-rk="">
+            <h3 class=class_attr style=style data-nk="">
                 {children.map(|c| c())}
             </h3>
         }.into_any(),
         "h4" => view! {
-            <h4 class=class_attr style=style data-rk="">
+            <h4 class=class_attr style=style data-nk="">
                 {children.map(|c| c())}
             </h4>
         }.into_any(),
         "h5" => view! {
-            <h5 class=class_attr style=style data-rk="">
+            <h5 class=class_attr style=style data-nk="">
                 {children.map(|c| c())}
             </h5>
         }.into_any(),
         "h6" => view! {
-            <h6 class=class_attr style=style data-rk="">
+            <h6 class=class_attr style=style data-nk="">
                 {children.map(|c| c())}
             </h6>
         }.into_any(),
         "label" => view! {
-            <label class=class_attr style=style data-rk="">
+            <label class=class_attr style=style data-nk="">
                 {children.map(|c| c())}
             </label>
         }.into_any(),
         "code" => view! {
-            <code class=class_attr style=style data-rk="">
+            <code class=class_attr style=style data-nk="">
                 {children.map(|c| c())}
             </code>
         }.into_any(),
         _ => view! {
-            <div class=class_attr style=style data-rk="">
+            <div class=class_attr style=style data-nk="">
                 {children.map(|c| c())}
             </div>
         }.into_any(),

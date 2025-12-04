@@ -36,14 +36,14 @@ pub fn Dialog(
     view! {
         <Portal>
             <div
-                class="rk-modal-overlay"
+                class="nk-modal-overlay"
                 style=move || {
                     let display = if open.get() { "flex" } else { "none" };
                     format!(
                         "position: fixed; top: 0; left: 0; right: 0; bottom: 0; \
                          display: {}; align-items: center; justify-content: center; \
-                         background: var(--rk-colors-modalBackdrop, rgba(0, 0, 0, 0.3)); \
-                         backdrop-filter: var(--rk-blurs-modalOverlay, blur(0px)); \
+                         background: var(--nk-colors-modalBackdrop, rgba(0, 0, 0, 0.3)); \
+                         backdrop-filter: var(--nk-blurs-modalOverlay, blur(0px)); \
                          z-index: 999999999; animation: fadeIn 150ms ease;",
                         display
                     )
@@ -51,22 +51,22 @@ pub fn Dialog(
                 on:click=move |ev: MouseEvent| {
                     if let Some(target) = ev.target() {
                         if let Some(element) = target.dyn_ref::<web_sys::HtmlElement>() {
-                            if element.class_list().contains("rk-modal-overlay") {
+                            if element.class_list().contains("nk-modal-overlay") {
                                 on_close.run(());
                             }
                         }
                     }
                 }
-                data-rk=""
+                data-nk=""
             >
                 <div
-                    class="rk-modal-content"
-                    style="background: var(--rk-colors-modalBackground, #FFF); \
-                           border-radius: var(--rk-radii-modal, 24px); \
+                    class="nk-modal-content"
+                    style="background: var(--nk-colors-modalBackground, #FFF); \
+                           border-radius: var(--nk-radii-modal, 24px); \
                            padding: 24px; max-width: 400px; width: 100%; margin: 16px; \
                            position: relative; \
-                           box-shadow: var(--rk-shadows-dialog, 0px 8px 32px rgba(0, 0, 0, 0.32)); \
-                           border: 1px solid var(--rk-colors-modalBorder, transparent); \
+                           box-shadow: var(--nk-shadows-dialog, 0px 8px 32px rgba(0, 0, 0, 0.32)); \
+                           border: 1px solid var(--nk-colors-modalBorder, transparent); \
                            animation: slideUp 350ms cubic-bezier(0.15, 1.15, 0.6, 1.00), fadeIn 150ms ease;"
                     on:click=|ev: MouseEvent| {
                         ev.stop_propagation();

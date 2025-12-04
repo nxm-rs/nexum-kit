@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use web_sys::window;
 
-const STORAGE_KEY: &str = "rainbowkit_transactions";
+const STORAGE_KEY: &str = "nexumkit_transactions";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TransactionStatus {

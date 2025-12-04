@@ -68,7 +68,7 @@ impl WalletInfo {
 /// # Example
 /// ```no_run
 /// use leptos::prelude::*;
-/// use leptos_rainbowkit::prelude::*;
+/// use nexumkit::prelude::*;
 /// use alloy::rpc::types::TransactionRequest;
 ///
 /// #[component]

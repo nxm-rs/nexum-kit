@@ -1,6 +1,6 @@
-//! Common imports for Leptos-RainbowKit applications
+//! Common imports for NexumKit applications
 
-pub use crate::components::{ConnectButton, RainbowKitProvider, RainbowKitProviderSimple};
+pub use crate::components::{ConnectButton, NexumKitProvider, NexumKitProviderSimple};
 pub use crate::components::primitives::{Box, Text, BoxDisplay, BoxFontWeight, BoxTextAlign, QrCode};
 pub use crate::theme::{Theme, LightTheme, DarkTheme, MidnightTheme, ThemeOptions};
 pub use crate::hooks::{use_wallet, use_balance, use_ens_name};

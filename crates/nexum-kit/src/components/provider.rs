@@ -9,7 +9,7 @@ use crate::theme::{Theme, ThemeOptions, LightTheme};
 use crate::i18n::{Locale, provide_i18n};
 
 #[component]
-pub fn RainbowKitProvider<T: Theme + Clone + 'static>(
+pub fn NexumKitProvider<T: Theme + Clone + 'static>(
     /// RPC URL mappings for each chain (chain_id -> rpc_url)
     ///
     /// Example:
@@ -47,7 +47,7 @@ pub fn RainbowKitProvider<T: Theme + Clone + 'static>(
         if let Some(document) = web_sys::window().and_then(|w| w.document()) {
             if let Some(head) = document.head() {
                 // Create or update style element
-                let style_id = "rainbowkit-theme-vars";
+                let style_id = "nexumkit-theme-vars";
                 let style_element = if let Some(existing) = document.get_element_by_id(style_id) {
                     existing.dyn_into::<HtmlStyleElement>().ok()
                 } else {
@@ -68,7 +68,7 @@ pub fn RainbowKitProvider<T: Theme + Clone + 'static>(
     });
 
     view! {
-        <div data-rk="">
+        <div data-nk="">
             {children()}
         </div>
     }
@@ -76,7 +76,7 @@ pub fn RainbowKitProvider<T: Theme + Clone + 'static>(
 
 // Simplified provider for when you want to use LightTheme (most common case)
 #[component]
-pub fn RainbowKitProviderSimple(
+pub fn NexumKitProviderSimple(
     /// RPC URL mappings for each chain (chain_id -> rpc_url)
     transports: HashMap<u64, String>,
     #[prop(optional)] theme_options: Option<ThemeOptions>,
@@ -96,7 +96,7 @@ pub fn RainbowKitProviderSimple(
     Effect::new(move |_| {
         if let Some(document) = web_sys::window().and_then(|w| w.document()) {
             if let Some(head) = document.head() {
-                let style_id = "rainbowkit-theme-vars";
+                let style_id = "nexumkit-theme-vars";
                 let style_element = if let Some(existing) = document.get_element_by_id(style_id) {
                     existing.dyn_into::<HtmlStyleElement>().ok()
                 } else {
@@ -117,7 +117,7 @@ pub fn RainbowKitProviderSimple(
     });
 
     view! {
-        <div data-rk="">
+        <div data-nk="">
             {children()}
         </div>
     }

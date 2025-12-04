@@ -24,7 +24,7 @@ pub type WalletProvider = Arc<dyn alloy::providers::Provider>;
 /// Connection state - manages wallet connection lifecycle
 ///
 /// This uses Leptos signals for reactive state management, similar to how
-/// the original RainbowKit uses React state + wagmi hooks.
+/// the original NexumKit uses React state + wagmi hooks.
 ///
 /// Provides an Alloy provider that combines:
 /// - HTTP transport for blockchain RPC (consumer-provided)
@@ -405,7 +405,7 @@ impl ConnectionState {
 
 /// Provide connection state to the component tree
 ///
-/// Call this in your RainbowKitProvider to make connection state
+/// Call this in your NexumKitProvider to make connection state
 /// available to all child components.
 ///
 /// # Arguments
@@ -418,7 +418,7 @@ pub fn provide_connection_state(transports: HashMap<u64, String>) -> ConnectionS
 
 /// Access connection state from any component
 ///
-/// This will panic if called outside of a RainbowKitProvider.
+/// This will panic if called outside of a NexumKitProvider.
 /// Use in components that need to access wallet connection state.
 pub fn use_connection_state() -> ConnectionState {
     expect_context::<ConnectionState>()
