@@ -99,7 +99,7 @@ fn App() -> impl IntoView {
     view! {
         {move || match theme_mode.get() {
             ThemeMode::Light => view! {
-                <RainbowKitProvider transports=transports.clone() theme=LightTheme theme_options=theme_options.clone()>
+                <NexumKitProvider transports=transports.clone() theme=LightTheme theme_options=theme_options.clone()>
                     <AppContent
                         theme_mode=theme_mode
                         bg_color=bg_color
@@ -107,10 +107,10 @@ fn App() -> impl IntoView {
                         card_bg=card_bg
                         on_toggle=handle_theme_toggle
                     />
-                </RainbowKitProvider>
+                </NexumKitProvider>
             }.into_any(),
             ThemeMode::Dark => view! {
-                <RainbowKitProvider transports=transports.clone() theme=DarkTheme theme_options=theme_options.clone()>
+                <NexumKitProvider transports=transports.clone() theme=DarkTheme theme_options=theme_options.clone()>
                     <AppContent
                         theme_mode=theme_mode
                         bg_color=bg_color
@@ -118,10 +118,10 @@ fn App() -> impl IntoView {
                         card_bg=card_bg
                         on_toggle=handle_theme_toggle
                     />
-                </RainbowKitProvider>
+                </NexumKitProvider>
             }.into_any(),
             ThemeMode::Midnight => view! {
-                <RainbowKitProvider transports=transports.clone() theme=MidnightTheme theme_options=theme_options.clone()>
+                <NexumKitProvider transports=transports.clone() theme=MidnightTheme theme_options=theme_options.clone()>
                     <AppContent
                         theme_mode=theme_mode
                         bg_color=bg_color
@@ -129,7 +129,7 @@ fn App() -> impl IntoView {
                         card_bg=card_bg
                         on_toggle=handle_theme_toggle
                     />
-                </RainbowKitProvider>
+                </NexumKitProvider>
             }.into_any(),
         }}
     }
@@ -156,7 +156,7 @@ fn AppContent(
                         text_color.run(())
                     )
                 >
-                    "Leptos RainbowKit"
+                    "Nexum-Kit"
                 </h1>
                 <p
                     class="text-lg"
@@ -182,7 +182,7 @@ fn AppContent(
                     </h2>
                     <button
                         class="px-3 py-1 rounded-lg text-sm font-medium"
-                        style="background: var(--rk-colors-accentColor); color: var(--rk-colors-accentColorForeground);"
+                        style="background: var(--nk-colors-accentColor); color: var(--nk-colors-accentColorForeground);"
                         on:click=move |ev| on_toggle.run(ev)
                     >
                         {move || format!("Theme: {}", theme_mode.get().name())}
@@ -266,7 +266,7 @@ fn DemoSection(
             match Eip1193Transport::get_ethereum() {
                 Ok(ethereum) => {
                     let signer = Eip1193Signer::new(ethereum, addr);
-                    let message = b"Hello from Leptos RainbowKit! This is a test message.";
+                    let message = b"Hello from Nexum-Kit! This is a test message.";
 
                     match signer.sign_message(message).await {
                         Ok(signature) => {
@@ -322,7 +322,7 @@ fn DemoSection(
                             ]
                         },
                         "domain": {
-                            "name": "Leptos RainbowKit",
+                            "name": "Nexum-Kit",
                             "version": "1",
                             "chainId": chain_id
                         },
@@ -562,7 +562,7 @@ fn DemoSection(
                     <div class="flex flex-col gap-2">
                         <button
                             class="px-4 py-2 rounded-lg font-medium text-sm"
-                            style="background: var(--rk-colors-accentColor); color: var(--rk-colors-accentColorForeground);"
+                            style="background: var(--nk-colors-accentColor); color: var(--nk-colors-accentColorForeground);"
                             on:click=handle_personal_sign
                             disabled=move || wallet.is_connecting.get()
                         >
@@ -584,7 +584,7 @@ fn DemoSection(
                     <div class="flex flex-col gap-2">
                         <button
                             class="px-4 py-2 rounded-lg font-medium text-sm"
-                            style="background: var(--rk-colors-accentColor); color: var(--rk-colors-accentColorForeground);"
+                            style="background: var(--nk-colors-accentColor); color: var(--nk-colors-accentColorForeground);"
                             on:click=handle_typed_sign
                             disabled=move || wallet.is_connecting.get()
                         >
@@ -616,7 +616,7 @@ fn DemoSection(
                     <div class="flex flex-col gap-2">
                         <button
                             class="px-4 py-2 rounded-lg font-medium text-sm"
-                            style="background: var(--rk-colors-accentColor); color: var(--rk-colors-accentColorForeground);"
+                            style="background: var(--nk-colors-accentColor); color: var(--nk-colors-accentColorForeground);"
                             on:click=handle_fetch_my_balance
                             disabled=move || wallet.is_connecting.get()
                         >
@@ -638,7 +638,7 @@ fn DemoSection(
                     <div class="flex flex-col gap-2">
                         <button
                             class="px-4 py-2 rounded-lg font-medium text-sm"
-                            style="background: var(--rk-colors-accentColor); color: var(--rk-colors-accentColorForeground);"
+                            style="background: var(--nk-colors-accentColor); color: var(--nk-colors-accentColorForeground);"
                             on:click=handle_fetch_vitalik_balance
                             disabled=move || wallet.is_connecting.get()
                         >
@@ -660,7 +660,7 @@ fn DemoSection(
                     <div class="flex flex-col gap-2">
                         <button
                             class="px-4 py-2 rounded-lg font-medium text-sm"
-                            style="background: var(--rk-colors-accentColor); color: var(--rk-colors-accentColorForeground);"
+                            style="background: var(--nk-colors-accentColor); color: var(--nk-colors-accentColorForeground);"
                             on:click=handle_fetch_block_number
                             disabled=move || wallet.is_connecting.get()
                         >
@@ -682,7 +682,7 @@ fn DemoSection(
                     <div class="flex flex-col gap-2">
                         <button
                             class="px-4 py-2 rounded-lg font-medium text-sm"
-                            style="background: var(--rk-colors-accentColor); color: var(--rk-colors-accentColorForeground);"
+                            style="background: var(--nk-colors-accentColor); color: var(--nk-colors-accentColorForeground);"
                             on:click=handle_send_transaction
                             disabled=move || wallet.is_connecting.get()
                         >

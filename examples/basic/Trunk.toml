@@ -10,5 +10,5 @@ port = 3333
 open = true
 
 [watch]
-watch = ["../../crates/leptos-rainbowkit/src"]
+watch = ["../../crates/nexum-kit/src"]
 ignore = []
