@@ -1,6 +1,9 @@
 # The readme is copied from the root before release
 packages/rainbowkit/README.md
 
+# direnv local environment
+.direnv/
+
 # Logs
 logs
 *.log
