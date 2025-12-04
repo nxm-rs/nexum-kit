@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
-/* Data attribute for RainbowKit components */
-[data-rk] {
-  font-family: var(--rk-fonts-body, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
+/* Data attribute for NexumKit components */
+[data-nk] {
+  font-family: var(--nk-fonts-body, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
 }
 
-/* Animations matching original RainbowKit */
+/* Animations matching original NexumKit */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -33,7 +33,7 @@
 }
 
 /* Utility classes for theme-aware styling */
-.rk-button {
+.nk-button {
   font-weight: 500;
   transition: all 0.125s ease;
   cursor: pointer;
@@ -41,30 +41,30 @@
   outline: none;
 }
 
-.rk-button-primary {
-  background: var(--rk-colors-connectButtonBackground);
-  color: var(--rk-colors-connectButtonText);
-  border-radius: var(--rk-radii-connectButton);
-  box-shadow: var(--rk-shadows-connectButton);
+.nk-button-primary {
+  background: var(--nk-colors-connectButtonBackground);
+  color: var(--nk-colors-connectButtonText);
+  border-radius: var(--nk-radii-connectButton);
+  box-shadow: var(--nk-shadows-connectButton);
   padding: 8px 16px;
 }
 
-.rk-button-primary:hover {
+.nk-button-primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
-.rk-button-primary:active {
+.nk-button-primary:active {
   transform: translateY(0);
 }
 
 /* Modal content specific styles */
-.rk-modal-content {
+.nk-modal-content {
   max-height: calc(100vh - 32px);
   overflow-y: auto;
 }
 
 /* Remove scroll when modal is open (will be handled via JS if needed) */
-body.rk-modal-open {
+body.nk-modal-open {
   overflow: hidden;
 }
