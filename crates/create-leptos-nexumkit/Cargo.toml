@@ -1,0 +1,14 @@
+[package]
+name = "create-leptos-nexumkit"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license = "AGPL-3.0-or-later"
+repository.workspace = true
+description = "CLI tool for scaffolding new Leptos NexumKit projects"
+
+[dependencies]
+
+[[bin]]
+name = "create-leptos-nexumkit"
+path = "src/main.rs"

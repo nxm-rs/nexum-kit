@@ -1,11 +1,11 @@
 [package]
-name = "leptos-rainbow-button"
+name = "nexum-button"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
-license.workspace = true
+license = "AGPL-3.0-or-later"
 repository.workspace = true
-description = "Standalone rainbow button component for Leptos"
+description = "Standalone nexum button component for Leptos"
 
 [dependencies]
 leptos.workspace = true
